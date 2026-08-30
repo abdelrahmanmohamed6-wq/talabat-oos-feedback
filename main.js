@@ -1,19 +1,32 @@
-// 🔗 استبدل هذا الرابط برابط الـ Deployment الخاص بك في Google Apps Script
+// 🔗 رابط الـ Web App الخاص بك في Google Apps Script
 var API_URL = "https://script.google.com/a/macros/talabat.com/s/AKfycbxV42hm_FmARXHFT_rlWY9lN8iC3xgu7pAVt5-qrPuJbhXeVanmHbNwq5VlD_oi0N58Rw/exec";
 
 var OWNER_EMAIL = 'abdelrahman.mohamed.6@talabat.com';
 var S = { user: null, userEmail: null, isOwner: false, ownerViewingUser: null, all: [], filtered: [], batchSelections: {}, allTeamNames: [] };
 
+// 🛡️ دالة الاستدعاء الذكية العابرة للقيود عبر JSONP
 function callAPI(action, payload, callback) {
-  fetch(API_URL, {
-    method: "POST",
-    mode: "cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action: action, payload: payload })
-  })
-  .then(function(res) { return res.json(); })
-  .then(function(data) { if (callback) callback(null, data); })
-  .catch(function(err) { if (callback) callback(err, null); });
+  var callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+  
+  window[callbackName] = function(data) {
+    delete window[callbackName];
+    var scriptEl = document.getElementById(callbackName);
+    if (scriptEl) scriptEl.parentNode.removeChild(scriptEl);
+    if (callback) callback(null, data);
+  };
+
+  var script = document.createElement('script');
+  script.id = callbackName;
+  var encodedPayload = encodeURIComponent(JSON.stringify(payload || {}));
+  script.src = API_URL + '?action=' + action + '&payload=' + encodedPayload + '&callback=' + callbackName;
+  
+  script.onerror = function() {
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    if (callback) callback(new Error('فشل الاتصال بالخادم'), null);
+  };
+
+  document.body.appendChild(script);
 }
 
 function renderImageTag(rawUrl) {
