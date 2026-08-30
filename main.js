@@ -1,16 +1,17 @@
-// 🔗 رابط الـ Web App الخاص بك في Google Apps Script
+// 🔗 ضع رابط النشر (Deployment URL) من Google Apps Script هنا
 var API_URL = "https://script.google.com/macros/s/AKfycbziTLyU0FDUiEntmO0oEI-nn7GUg1KuDlpGzK_SLdPZkwRULXzJ5r11lPOQ07R6hN6L/exec";
 
+var OWNER_EMAIL = 'abdelrahman.mohamed.6@talabat.com';
 var S = { user: null, userEmail: null, isOwner: false, ownerViewingUser: null, all: [], filtered: [], batchSelections: {}, allTeamNames: [] };
 
-// 🛡️ دالة الاستدعاء الذكية العابرة للقيود عبر JSONP
+// 🛡️ دالة JSONP العابرة للقيود بدون حظر CORS
 function callAPI(action, payload, callback) {
-  var callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+  var callbackName = 'jsonp_cb_' + Math.round(1000000 * Math.random());
   
   window[callbackName] = function(data) {
     delete window[callbackName];
     var scriptEl = document.getElementById(callbackName);
-    if (scriptEl) scriptEl.parentNode.removeChild(scriptEl);
+    if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
     if (callback) callback(null, data);
   };
 
@@ -41,32 +42,51 @@ function renderImageTag(rawUrl) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-  initApp();
+  initGoogleAuth();
 });
 
-function initApp() {
-  callAPI("getTeamMembers", {}, function(err, res) {
+// 🔒 تسجيل الدخول بحساب جوجل مباشرة والتحقق من القائمة
+function initGoogleAuth() {
+  showLoader();
+  setLoaderText("جاري التحقق من حساب جوجل...");
+
+  callAPI("verifyUserAuth", {}, function(err, res) {
+    hideLoader();
     if (err || !res) {
-      S.allTeamNames = ['khalaf', 'mahdy', 'ehab', 'abdelrahman'];
-      populateDropdowns();
-      hideLoader(); show('loginScreen');
+      showLoginScreen(false, "عفواً! تعذر الاتصال بالسيرفر للمصادقة");
       return;
     }
-    S.allTeamNames = res.names || [];
-    populateDropdowns();
-    hideLoader(); show('loginScreen');
+
+    if (res.isAuthorized) {
+      S.user = res.name;
+      S.userEmail = res.email;
+      S.isOwner = res.isOwner;
+      S.allTeamNames = res.allNames || [];
+      populateAdminDropdown();
+      loadData();
+    } else {
+      showLoginScreen(false, res.message || "عفواً! هذا الحساب غير مصرح له بالدخول");
+    }
   });
 }
 
-function populateDropdowns() {
-  var sel = document.getElementById('nameDropdownSelect');
-  if (sel) {
-    sel.innerHTML = '<option value="">— اختر اسمك من القائمة —</option>';
-    S.allTeamNames.forEach(function(n) {
-      var o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
-    });
+function showLoginScreen(isAuthorized, msg) {
+  hide('loginScreen');
+  show('loginScreen');
+  var loginManual = document.getElementById('loginManual');
+  if (loginManual) {
+    if (!isAuthorized) {
+      loginManual.innerHTML = `
+        <div style="color:var(--error); font-size:13px; font-weight:800; background:var(--error-bg); padding:12px; border-radius:8px; border:1px solid var(--error); margin-top:12px;">
+          ⚠️ ${msg || 'عفواً! هذا الحساب غير مصرح له بالدخول'}
+        </div>
+        <button class="btn-login" style="margin-top:16px;" onclick="location.reload()">🔄 إعادة المحاولة بحساب آخر</button>
+      `;
+    }
   }
+}
 
+function populateAdminDropdown() {
   var adminSel = document.getElementById('adminUserSelect');
   if (adminSel) {
     adminSel.innerHTML = '<option value="__ALL__">— كل أعضاء الفريق —</option>';
@@ -74,14 +94,6 @@ function populateDropdowns() {
       var o = document.createElement('option'); o.value = n; o.textContent = n; adminSel.appendChild(o);
     });
   }
-}
-
-function doManualLogin() {
-  var val = document.getElementById('nameDropdownSelect').value;
-  if (!val) { toast('اختر اسمك أولاً', 'err'); return; }
-  S.user = val;
-  S.isOwner = (val.toLowerCase() === 'abdelrahman');
-  loadData();
 }
 
 function adminLoadSelected() {
@@ -117,14 +129,18 @@ function closeAdminDashboardModal() { document.getElementById('adminDashboardMod
 
 function loadData() {
   showLoader();
+  setLoaderText("جاري تحميل البيانات...");
   var action = S.isOwner ? "getOwnerData" : "getUserData";
   var payload = S.isOwner ? { filterName: S.ownerViewingUser } : { user: S.user };
 
   callAPI(action, payload, function(err, res) {
     if (err || !res) { hideLoader(); toast('فشل التحميل', 'err'); return; }
     S.all = res.issues || []; S.batchSelections = {};
-    setupFilters(res.filters || {});
+    
+    // بناء واستدعاء الفلاتر المترابطة لأول مرة
+    updateCascadingFilters();
     applyFilters();
+
     hide('loginScreen');
     document.getElementById('appScreen').classList.add('on');
 
@@ -149,15 +165,54 @@ function loadData() {
 
 function refreshData() { loadData(); }
 
-function setupFilters(f) {
-  var vs = document.getElementById('fVendor'); vs.innerHTML = '<option value="">كل الفروع</option>'; (f.vendors || []).forEach(function(v) { vs.appendChild(makeOption(v, v)); });
-  var bs = document.getElementById('fBranch'); bs.innerHTML = '<option value="">كل Vendor ID</option>'; (f.branchIds || []).forEach(function(b) { bs.appendChild(makeOption(b, b)); });
-  var cn = document.getElementById('fChainName'); cn.innerHTML = '<option value="">كل Chain Name</option>'; (f.chainNames || []).forEach(function(c) { cn.appendChild(makeOption(c, c)); });
-  var ci = document.getElementById('fChainId'); ci.innerHTML = '<option value="">كل Chain ID</option>'; (f.chainIds || []).forEach(function(c) { ci.appendChild(makeOption(c, c)); });
+// 🔄 نظام الفلاتر التفاعلية والمترابطة أوتوماتيكياً (Cascading Filters Engine)
+function updateCascadingFilters() {
+  var selectedVendor    = document.getElementById('fVendor').value;
+  var selectedBranch    = document.getElementById('fBranch').value;
+  var selectedChainName = document.getElementById('fChainName').value;
+  var selectedChainId   = document.getElementById('fChainId').value;
+
+  // تصفية البيانات المتاحة بناءً على الاختيارات الحالية للفلتر
+  var available = S.all.filter(function(i) {
+    if (selectedVendor    && i.vendorName !== selectedVendor)               return false;
+    if (selectedBranch    && String(i.branchId) !== String(selectedBranch)) return false;
+    if (selectedChainName && i.chainName  !== selectedChainName)            return false;
+    if (selectedChainId   && String(i.chainId) !== String(selectedChainId)) return false;
+    return true;
+  });
+
+  // تجميع الخيارات المتاحة المرتبطة فقط
+  var vendors = {}, branchIds = {}, chainNames = {}, chainIds = {};
+
+  available.forEach(function(i) {
+    if (i.vendorName) vendors[i.vendorName] = true;
+    if (i.branchId)   branchIds[i.branchId] = true;
+    if (i.chainName)  chainNames[i.chainName] = true;
+    if (i.chainId)    chainIds[i.chainId] = true;
+  });
+
+  // تحديث محتوى القوائم المنسدلة بدون مسح الخيار المحدد حالياً
+  rebuildSelect('fVendor',    'كل الفروع',    Object.keys(vendors).sort(),    selectedVendor);
+  rebuildSelect('fBranch',    'كل Vendor ID', Object.keys(branchIds).sort(),  selectedBranch);
+  rebuildSelect('fChainName', 'كل Chain Name', Object.keys(chainNames).sort(), selectedChainName);
+  rebuildSelect('fChainId',   'كل Chain ID',   Object.keys(chainIds).sort(),   selectedChainId);
 }
-function makeOption(val, label) { var o = document.createElement('option'); o.value = val; o.textContent = label; return o; }
+
+function rebuildSelect(id, placeholder, optionsArray, currentValue) {
+  var sel = document.getElementById(id);
+  sel.innerHTML = '<option value="">' + placeholder + '</option>';
+  optionsArray.forEach(function(val) {
+    var o = document.createElement('option');
+    o.value = val;
+    o.textContent = val;
+    if (val === currentValue) o.selected = true;
+    sel.appendChild(o);
+  });
+}
 
 function applyFilters() {
+  updateCascadingFilters();
+
   var vendor    = document.getElementById('fVendor').value;
   var branch    = document.getElementById('fBranch').value;
   var chainName = document.getElementById('fChainName').value;
@@ -170,12 +225,16 @@ function applyFilters() {
     if (chainId   && String(i.chainId) !== String(chainId)) return false;
     return true;
   });
-  renderItems(); updateBatchBarState();
+
+  renderItems();
+  updateBatchBarState();
 }
 
 function clearFilters() {
-  document.getElementById('fVendor').value = ''; document.getElementById('fBranch').value = '';
-  document.getElementById('fChainName').value = ''; document.getElementById('fChainId').value = '';
+  document.getElementById('fVendor').value = '';
+  document.getElementById('fBranch').value = '';
+  document.getElementById('fChainName').value = '';
+  document.getElementById('fChainId').value = '';
   applyFilters();
 }
 
