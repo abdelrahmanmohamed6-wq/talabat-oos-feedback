@@ -1,5 +1,5 @@
-// 🔗 ضع رابط الـ Web App الخاص بك في Google Apps Script هنا
-var API_URL = "https://script.google.com/macros/s/AKfycbziTLyU0FDUiEntmO0oEI-nn7GUg1KuDlpGzK_SLdPZkwRULXzJ5r11lPOQ07R6hN6L/exec";
+// 🔗 ضع رابط النشر المباشر من Google Apps Script هنا
+var API_URL = "ضع_رابط_الـhttps://script.google.com/macros/s/AKfycbziTLyU0FDUiEntmO0oEI-nn7GUg1KuDlpGzK_SLdPZkwRULXzJ5r11lPOQ07R6hN6L/exec";
 
 var OWNER_EMAILS = ['abdelrahman.mohamed.6@talabat.com', 'abdelrahmannmohamedd.10@gmail.com'];
 var S = { user: null, userEmail: null, isOwner: false, ownerViewingUser: null, all: [], filtered: [], batchSelections: {}, allTeamNames: [] };
@@ -41,18 +41,41 @@ function renderImageTag(rawUrl) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-  initGoogleAuth();
+  hideLoader();
+  renderGoogleSignInButton();
 });
 
-// 🔒 التحقق من البريد: يوجه الموظف لرفع الصورة، ويدخل المدير مباشرة
-function initGoogleAuth() {
-  showLoader();
-  setLoaderText("جاري التحقق من الصلاحيات...");
+// 🔒 بناء شاشة تسجيل الدخول الصريحة بحساب جوجل
+function renderGoogleSignInButton() {
+  show('loginScreen');
+  var container = document.getElementById('loginManual');
+  if (container) {
+    container.innerHTML = `
+      <div style="margin-bottom:16px; font-size:12px; color:var(--text-2);">قم بإدخال بريد جوجل المسجل في شيت maping لتأكيد الهوية:</div>
+      <input type="email" id="emailInputAuth" placeholder="example@gmail.com" class="field-select" style="text-align:center; font-weight:700;">
+      <button class="btn-login" onclick="verifyAndLoginUser()">🔐 الدخول بحساب جوجل ←</button>
+      <div id="authErrorMsg" style="display:none; color:var(--error); font-size:12px; font-weight:800; background:var(--error-bg); padding:10px; border-radius:8px; border:1px solid var(--error); margin-top:12px;"></div>
+    `;
+  }
+}
 
-  callAPI("verifyUserAuth", {}, function(err, res) {
+function verifyAndLoginUser() {
+  var email = document.getElementById('emailInputAuth').value.trim();
+  var errBox = document.getElementById('authErrorMsg');
+  if (!email) {
+    errBox.style.display = 'block';
+    errBox.textContent = 'يرجى إدخال البريد الإلكتروني أولاً';
+    return;
+  }
+
+  showLoader();
+  setLoaderText("جاري التحقق من الصلاحيات وشيت maping...");
+
+  callAPI("verifyUserAuth", { email: email }, function(err, res) {
     hideLoader();
     if (err || !res) {
-      showLoginScreen(false, "عفواً! تعذر الاتصال بالخادم للمصادقة");
+      errBox.style.display = 'block';
+      errBox.textContent = 'تعذر الاتصال بالسيرفر للمصادقة';
       return;
     }
 
@@ -62,29 +85,30 @@ function initGoogleAuth() {
       S.isOwner = res.isOwner;
       S.allTeamNames = res.allNames || [];
 
-      // 👑 إذا كان صاحب الحساب إدارياً (Owner) -> يتخطى طلب الصورة ويدخل مباشرة
+      // 👑 إذا كان إدارياً (Owner) -> يدخل فوراً بدون صورة
       if (S.isOwner) {
         callAPI("recordUserLogin", { name: S.user, email: S.userEmail, photo: "دخول إداري مباشر" }, function() {});
         populateAdminDropdown();
         loadData();
       } else {
-        // 👷 إذا كان موظفاً عادي -> يظهر له شباك التقاط صورة الحضور إجبارياً
+        // 👷 إذا كان موظفاً في maping -> يفتح له شباك أخذ الصورة إجبارياً
         showSelfieModal();
       }
     } else {
-      showLoginScreen(false, res.message || "عفواً! هذا الحساب غير مصرح له بالدخول");
+      errBox.style.display = 'block';
+      errBox.textContent = res.message || "عفواً! هذا الحساب غير مصرح له بالدخول نهائياً.";
     }
   });
 }
 
-// 📸 نافذة التقاط/رفع الصورة الخاصة بالموظفين
+// 📸 شباك التقاط الصورة الإجباري للموظف قبل الدخول
 function showSelfieModal() {
   var modalHtml = `
-    <div id="selfieModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
+    <div id="selfieModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
       <div style="background:white; border-radius:16px; padding:24px; max-width:380px; width:100%; text-align:center;">
-        <div style="font-size:32px; margin-bottom:8px;">📸</div>
-        <h3 style="font-size:16px; font-weight:900;">تسجيل صورة الحضور للموظف</h3>
-        <p style="font-size:11px; color:var(--text-2); margin-bottom:16px;">مرحباً ${S.user}، يرجى التقاط صورة شخصية لتأكيد تسجيل الحضور وتفعيل الجلسة</p>
+        <div style="font-size:36px; margin-bottom:8px;">📸</div>
+        <h3 style="font-size:16px; font-weight:900;">إثبات الحضور بالصورة</h3>
+        <p style="font-size:11px; color:var(--text-2); margin-bottom:16px;">مرحباً <strong>${S.user}</strong>، التقاط الصورة إجباري قبل فتح المهام اليومية لتسجيل الحضور</p>
         <input type="file" accept="image/*" capture="user" id="selfieInput" style="margin-bottom:12px; font-size:12px;" onchange="handleSelfieSelect(this)">
         <button id="btnConfirmLogin" class="btn-login" style="width:100%; padding:10px;" onclick="confirmLoginWithPhoto()" disabled>تأكيد الحضور وبدء العمل ←</button>
       </div>
@@ -114,20 +138,6 @@ function confirmLoginWithPhoto() {
     populateAdminDropdown();
     loadData();
   });
-}
-
-function showLoginScreen(isAuthorized, msg) {
-  hide('loginScreen');
-  show('loginScreen');
-  var loginManual = document.getElementById('loginManual');
-  if (loginManual) {
-    loginManual.innerHTML = `
-      <div style="color:var(--error); font-size:13px; font-weight:800; background:var(--error-bg); padding:12px; border-radius:8px; border:1px solid var(--error); margin-top:12px;">
-        ⚠️ ${msg || 'عفواً! هذا الحساب غير مصرح له بالدخول'}
-      </div>
-      <button class="btn-login" style="margin-top:16px;" onclick="location.reload()">🔄 إعادة المحاولة</button>
-    `;
-  }
 }
 
 function populateAdminDropdown() {
@@ -171,7 +181,7 @@ function openAdminDashboardModal() {
     if (!loginBody) {
       var modalBox = document.querySelector('.dash-box');
       modalBox.insertAdjacentHTML('beforeend', `
-        <h4 style="font-weight:800; font-size:13px; margin-top:20px;">📸 سجل حضور ودخول الموظفين بالصور</h4>
+        <h4 style="font-weight:800; font-size:13px; margin-top:20px;">📸 سجل حضور الموظفين وتتبع الصور</h4>
         <div style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">
           <table style="width:100%; border-collapse:collapse; font-size:11px;">
             <thead><tr style="background:var(--bg);"><th>الوقت</th><th>الموظف</th><th>البريد</th><th>الصورة</th></tr></thead>
