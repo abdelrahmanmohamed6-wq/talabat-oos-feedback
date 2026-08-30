@@ -6,43 +6,27 @@
   <title>Talabat OOS – بوابة الفيدباك</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <!-- 🔐 مكتبة جوجل الرسمية للتحقق الهوياتي الأمني -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
-<div id="globalLoader">
+<div id="globalLoader" style="display:none;">
   <div style="font-size:48px; margin-bottom:12px;">💉</div>
   <div id="loaderText" style="font-size:18px; font-weight:900; letter-spacing:1px;">TALABAT OOS</div>
   <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
 </div>
 
-<div id="loginScreen">
+<div id="loginScreen" style="display:flex;">
   <div class="login-card">
     <div style="font-size:40px; margin-bottom:12px;">💉</div>
     <h1 style="font-size:22px; font-weight:900;">بوابة الفيدباك</h1>
     <p style="font-size:12px; color:var(--text-2); margin-bottom:20px;">Talabat OOS</p>
     
     <div id="loginManual">
-      <p style="font-size:12px; color:var(--text-2); margin-bottom:16px;">اضغط للتحقق من حساب جوجل والربط بشيت maping:</p>
-      
-      <!-- 🔴 زر جوجل الرسمي للـ OAuth -->
-      <div id="g_id_onload"
-           data-client_id="943187232231-dummyclientid.apps.googleusercontent.com"
-           data-callback="handleCredentialResponse"
-           data-auto_prompt="false">
-      </div>
-      <div class="g_id_signin"
-           data-type="standard"
-           data-size="large"
-           data-theme="outline"
-           data-text="sign_in_with"
-           data-shape="rectangular"
-           data-logo_alignment="left"
-           style="display:flex; justify-content:center;">
-      </div>
-
-      <div id="authErrorMsg" style="display:none; color:var(--error); font-size:12px; font-weight:800; background:var(--error-bg); padding:12px; border-radius:8px; border:1px solid var(--error); margin-top:16px;"></div>
+      <p style="font-size:12px; color:var(--text-2); margin-bottom:16px;">قم بإدخال بريد جوجل المسجل في شيت maping لتأكيد الهوية:</p>
+      <input type="email" id="emailInputAuth" placeholder="example@gmail.com" class="field-select" style="text-align:center; font-weight:700;">
+      <button class="btn-login" onclick="verifyAndLoginUser()">🔐 الدخول بحساب جوجل ←</button>
+      <div id="authErrorMsg" style="display:none; color:var(--error); font-size:12px; font-weight:800; background:var(--error-bg); padding:10px; border-radius:8px; border:1px solid var(--error); margin-top:12px;"></div>
     </div>
   </div>
 </div>
