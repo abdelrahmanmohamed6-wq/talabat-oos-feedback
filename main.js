@@ -1,5 +1,5 @@
 // 🔗 استبدل هذا الرابط برابط الـ Deployment الخاص بك في Google Apps Script
-var API_URL = "https://script.google.com/a/macros/talabat.com/s/AKfycbwLLtt9gAUgydnytaF6CJFDNOpr3cHHzrLm9hXsv-W5oICLwnFurWjZQnBNIy6KdsnsfQ/exec";
+var API_URL = "https://script.google.com/a/macros/talabat.com/s/AKfycbxV42hm_FmARXHFT_rlWY9lN8iC3xgu7pAVt5-qrPuJbhXeVanmHbNwq5VlD_oi0N58Rw/exec";
 
 var OWNER_EMAIL = 'abdelrahman.mohamed.6@talabat.com';
 var S = { user: null, userEmail: null, isOwner: false, ownerViewingUser: null, all: [], filtered: [], batchSelections: {}, allTeamNames: [] };
