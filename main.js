@@ -1,7 +1,6 @@
 // 🔗 ضع رابط النشر المباشر من Google Apps Script هنا
-var API_URL = "ضع_رابط_الـhttps://script.google.com/macros/s/AKfycbziTLyU0FDUiEntmO0oEI-nn7GUg1KuDlpGzK_SLdPZkwRULXzJ5r11lPOQ07R6hN6L/exec";
+var API_URL = "https://script.google.com/macros/s/AKfycbziTLyU0FDUiEntmO0oEI-nn7GUg1KuDlpGzK_SLdPZkwRULXzJ5r11lPOQ07R6hN6L/exec";
 
-var OWNER_EMAILS = ['abdelrahman.mohamed.6@talabat.com', 'abdelrahmannmohamedd.10@gmail.com'];
 var S = { user: null, userEmail: null, isOwner: false, ownerViewingUser: null, all: [], filtered: [], batchSelections: {}, allTeamNames: [] };
 
 function callAPI(action, payload, callback) {
@@ -41,41 +40,18 @@ function renderImageTag(rawUrl) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-  hideLoader();
-  renderGoogleSignInButton();
+  initApp();
 });
 
-// 🔒 بناء شاشة تسجيل الدخول الصريحة بحساب جوجل
-function renderGoogleSignInButton() {
-  show('loginScreen');
-  var container = document.getElementById('loginManual');
-  if (container) {
-    container.innerHTML = `
-      <div style="margin-bottom:16px; font-size:12px; color:var(--text-2);">قم بإدخال بريد جوجل المسجل في شيت maping لتأكيد الهوية:</div>
-      <input type="email" id="emailInputAuth" placeholder="example@gmail.com" class="field-select" style="text-align:center; font-weight:700;">
-      <button class="btn-login" onclick="verifyAndLoginUser()">🔐 الدخول بحساب جوجل ←</button>
-      <div id="authErrorMsg" style="display:none; color:var(--error); font-size:12px; font-weight:800; background:var(--error-bg); padding:10px; border-radius:8px; border:1px solid var(--error); margin-top:12px;"></div>
-    `;
-  }
-}
-
-function verifyAndLoginUser() {
-  var email = document.getElementById('emailInputAuth').value.trim();
-  var errBox = document.getElementById('authErrorMsg');
-  if (!email) {
-    errBox.style.display = 'block';
-    errBox.textContent = 'يرجى إدخال البريد الإلكتروني أولاً';
-    return;
-  }
-
+function initApp() {
   showLoader();
-  setLoaderText("جاري التحقق من الصلاحيات وشيت maping...");
+  setLoaderText("جاري المصادقة...");
 
-  callAPI("verifyUserAuth", { email: email }, function(err, res) {
+  // الدخول المباشر بالبريد الإداري
+  callAPI("verifyUserAuth", { email: "abdelrahmannmohamedd.10@gmail.com" }, function(err, res) {
     hideLoader();
     if (err || !res) {
-      errBox.style.display = 'block';
-      errBox.textContent = 'تعذر الاتصال بالسيرفر للمصادقة';
+      toast("تعذر الاتصال بالسيرفر", "err");
       return;
     }
 
@@ -85,30 +61,26 @@ function verifyAndLoginUser() {
       S.isOwner = res.isOwner;
       S.allTeamNames = res.allNames || [];
 
-      // 👑 إذا كان إدارياً (Owner) -> يدخل فوراً بدون صورة
       if (S.isOwner) {
         callAPI("recordUserLogin", { name: S.user, email: S.userEmail, photo: "دخول إداري مباشر" }, function() {});
         populateAdminDropdown();
         loadData();
       } else {
-        // 👷 إذا كان موظفاً في maping -> يفتح له شباك أخذ الصورة إجبارياً
         showSelfieModal();
       }
     } else {
-      errBox.style.display = 'block';
-      errBox.textContent = res.message || "عفواً! هذا الحساب غير مصرح له بالدخول نهائياً.";
+      toast(res.message || "حساب غير مصرح به", "err");
     }
   });
 }
 
-// 📸 شباك التقاط الصورة الإجباري للموظف قبل الدخول
 function showSelfieModal() {
   var modalHtml = `
     <div id="selfieModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
       <div style="background:white; border-radius:16px; padding:24px; max-width:380px; width:100%; text-align:center;">
         <div style="font-size:36px; margin-bottom:8px;">📸</div>
         <h3 style="font-size:16px; font-weight:900;">إثبات الحضور بالصورة</h3>
-        <p style="font-size:11px; color:var(--text-2); margin-bottom:16px;">مرحباً <strong>${S.user}</strong>، التقاط الصورة إجباري قبل فتح المهام اليومية لتسجيل الحضور</p>
+        <p style="font-size:11px; color:var(--text-2); margin-bottom:16px;">مرحباً <strong>${S.user}</strong>، التقاط الصورة إجباري لتسجيل الحضور اليومي</p>
         <input type="file" accept="image/*" capture="user" id="selfieInput" style="margin-bottom:12px; font-size:12px;" onchange="handleSelfieSelect(this)">
         <button id="btnConfirmLogin" class="btn-login" style="width:100%; padding:10px;" onclick="confirmLoginWithPhoto()" disabled>تأكيد الحضور وبدء العمل ←</button>
       </div>
