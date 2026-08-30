@@ -1,1 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Talabat OOS – بوابة الفيدباك</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
 
+<div id="globalLoader">
+  <div style="font-size:48px; margin-bottom:12px;">💉</div>
+  <div id="loaderText" style="font-size:18px; font-weight:900; letter-spacing:1px;">TALABAT OOS</div>
+  <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+</div>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div style="font-size:40px; margin-bottom:12px;">💉</div>
+    <h1 style="font-size:22px; font-weight:900;">بوابة الفيدباك</h1>
+    <p style="font-size:12px; color:var(--text-2); margin-bottom:20px;">Talabat OOS</p>
+    
+    <div id="loginManual">
+      <select id="nameDropdownSelect" class="field-select"></select>
+      <button class="btn-login" onclick="doManualLogin()">الدخول ←</button>
+    </div>
+  </div>
+</div>
+
+<div id="appScreen">
+  <header class="app-header">
+    <div class="header-row">
+      <div class="brand">
+        <div class="brand-icon">T</div>
+        <div style="font-weight:900; font-size:14px;">OOS Feedback</div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button id="btnDashTrigger" style="display:none; background:#0F172A; color:white; border:none; padding:5px 12px; border-radius:20px; font-size:11px; font-weight:800; cursor:pointer;" onclick="openAdminDashboardModal()">📊 التحليلات</button>
+        <span id="headerName" style="font-size:12px; font-weight:800; background:var(--primary-bg); color:var(--primary); padding:4px 10px; border-radius:20px;">-</span>
+        <button onclick="doLogout()" style="border:none; background:none; cursor:pointer; font-size:16px;">⬅️</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-filter-bar" id="adminFilterBar">
+    <span style="font-size:12px; font-weight:800; color:var(--primary-dark);">👁️ عرض بيانات:</span>
+    <select id="adminUserSelect" class="admin-user-select" onchange="adminLoadSelected()"></select>
+  </div>
+
+  <div class="branch-summary-bar">
+    <div>
+      إجمالي المنتجات: <span id="summaryTotalCount" style="color:var(--primary-light); font-weight:900;">0</span> | 
+      المحدثة: <span id="summaryUpdatedCount" style="color:var(--success); font-weight:900;">0</span> | 
+      المتبقية: <span id="summaryRemainingCount" style="color:var(--warning); font-weight:900;">0</span>
+    </div>
+    <div id="branchStatusTag" class="branch-status-tag">PENDING ⏳</div>
+  </div>
+
+  <div class="filter-strip">
+    <select id="fVendor" class="f-select" onchange="applyFilters()"><option value="">كل الفروع</option></select>
+    <select id="fBranch" class="f-select" onchange="applyFilters()"><option value="">كل Vendor ID</option></select>
+    <select id="fChainName" class="f-select" onchange="applyFilters()"><option value="">كل Chain Name</option></select>
+    <select id="fChainId" class="f-select" onchange="applyFilters()"><option value="">كل Chain ID</option></select>
+    <button onclick="clearFilters()" style="padding:6px 12px; border:1px solid var(--error); color:var(--error); border-radius:var(--r-sm); background:white; font-size:11px; font-weight:800; cursor:pointer;">✕ مسح</button>
+  </div>
+
+  <main class="items-wrap">
+    <div id="itemsList" class="items-list"></div>
+    <div id="emptyState" style="display:none; text-align:center; padding:60px 20px;">
+      <div style="font-size:48px;">🎉</div>
+      <div style="font-size:16px; font-weight:800; margin-top:8px;">أحسنت! كل العناصر مكتملة</div>
+    </div>
+  </main>
+
+  <div class="batch-bottom-bar">
+    <div style="font-size:12px; font-weight:700;">
+      المهام المكتملة: <span id="batchCompletedCount" style="color:var(--primary); font-size:16px; font-weight:900;">0</span> / <span id="batchTotalCount">0</span>
+    </div>
+    <button class="btn-batch-submit" id="btnBatchSubmit" onclick="submitBatchTasks()" disabled>
+      🚀 إرسال الفيدباك المجمع (Submit Feedback)
+    </button>
+  </div>
+</div>
+
+<div id="adminDashboardModal">
+  <div class="dash-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:16px;">
+      <h3 style="font-weight:900; font-size:16px;">👑 لوحة تحليلات المدير الإدارية</h3>
+      <button onclick="closeAdminDashboardModal()" style="border:none; background:var(--bg); padding:5px 10px; border-radius:var(--r-sm); font-weight:800; cursor:pointer;">✕</button>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--primary);" id="dashKpiTotal">0</div><div style="font-size:10px; color:var(--text-2);">إجمالي المهام</div></div>
+      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--warning);" id="dashKpiPending">0</div><div style="font-size:10px; color:var(--text-2);">المعلق الحالي</div></div>
+      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--success);" id="dashKpiCompleted">0</div><div style="font-size:10px; color:var(--text-2);">المكتمل</div></div>
+      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--info);" id="dashKpiRate">0%</div><div style="font-size:10px; color:var(--text-2);">نسبة الإنجاز</div></div>
+    </div>
+
+    <h4 style="font-weight:800; font-size:13px; margin-top:16px;">👥 أداء فريق العمل</h4>
+    <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:8px;">
+      <thead><tr style="background:var(--bg);"><th>الموظف</th><th>المعلق</th><th>المكتمل</th><th>الإنجاز</th></tr></thead>
+      <tbody id="dashTeamBody"></tbody>
+    </table>
+
+    <h4 style="font-weight:800; font-size:13px; margin-top:20px;">🕒 آخر الإجراءات الزمني</h4>
+    <div style="max-height:200px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">
+      <table style="width:100%; border-collapse:collapse; font-size:11px;">
+        <thead><tr style="background:var(--bg);"><th>الوقت</th><th>الموظف</th><th>رقم الطلب</th><th>الإجراء</th></tr></thead>
+        <tbody id="dashAuditBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+
+<script src="main.js"></script>
+</body>
+</html>
