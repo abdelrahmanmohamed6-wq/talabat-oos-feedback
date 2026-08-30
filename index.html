@@ -162,7 +162,7 @@
       data-auto_select="true": يحاول تسجيل الدخول تلقائياً إذا كان هناك حساب واحد فقط مسجّل
     -->
     <div id="g_id_onload"
-         data-client_id="YOUR_GOOGLE_CLIENT_ID"
+         data-client_id="397053555500-0kavau822uibedcefps41h4ibg7iueu7.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
          data-auto_select="true"
          data-cancel_on_tap_outside="false">
@@ -727,4 +727,157 @@ function toggleAction(k, type) {
   }
   var actions = S.batchSelections[k].actions;
   var btn = document.getElementById('abt_' + k + '_' + type);
-  var chk = document
+  var chk = document.getElementById('chk_' + k + '_' + type);
+
+  if (actions[type]) {
+    delete actions[type];
+    if (btn) btn.classList.remove('sel');
+    if (chk) chk.textContent = '';
+  } else {
+    actions[type] = { value: '' };
+    if (btn) btn.classList.add('sel');
+    if (chk) chk.textContent = '✓';
+  }
+
+  renderCardInputs(k);
+  var card = document.getElementById('icard_' + k);
+  if (Object.keys(actions).length === 0) {
+    delete S.batchSelections[k];
+    if (card) card.style.borderColor = 'transparent';
+  } else {
+    if (card) card.style.borderColor = 'var(--success)';
+  }
+  updateBatchBarState();
+}
+
+function renderCardInputs(k) {
+  var panel = document.getElementById('aip_' + k);
+  if (!panel || !S.batchSelections[k]) {
+    if (panel) { panel.innerHTML = ''; panel.classList.remove('show'); }
+    return;
+  }
+  var actions = S.batchSelections[k].actions;
+  var keys = Object.keys(actions);
+  if (!keys.length) { panel.innerHTML = ''; panel.classList.remove('show'); return; }
+
+  var placeholders = { EDIT_NAME: 'أدخل الاسم الصحيح...', EDIT_BARCODE: 'أدخل الباركود الصحيح...', EDIT_SKU: 'أدخل SKU الصحيح...', OTHER: 'أدخل الملاحظة...' };
+  var html = '';
+  keys.forEach(function(type) {
+    if (type === 'SYSTEM_EQUAL' || type === 'SYSTEM_DIFF' || type === 'IMAGE_ISSUE') {
+      html += '<div style="margin-bottom:8px; background:white; padding:8px; border-radius:6px; border:1px solid var(--border);">' +
+        '<div style="font-size:11px; font-weight:800; margin-bottom:4px; color:var(--primary);">📷 التقاط صورة (إجباري):</div>' +
+        '<input type="file" accept="image/*" capture="environment" style="font-size:11px;" onchange="onCameraCapture(this,\'' + k + '\',\'' + type + '\')">' +
+        '</div>';
+    } else {
+      html += '<input type="text" style="width:100%; padding:6px; margin-bottom:6px; border:1px solid var(--border); border-radius:4px; font-size:11px;" ' +
+        'placeholder="' + (placeholders[type] || '') + '" oninput="onInputValue(\'' + k + '\',\'' + type + '\', this.value)">';
+    }
+  });
+  panel.innerHTML = html;
+  panel.classList.add('show');
+}
+
+function onCameraCapture(input, k, type) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    if (S.batchSelections[k] && S.batchSelections[k].actions[type])
+      S.batchSelections[k].actions[type].value = e.target.result;
+    updateBatchBarState();
+  };
+  reader.readAsDataURL(file);
+}
+
+function onInputValue(k, type, val) {
+  if (S.batchSelections[k] && S.batchSelections[k].actions[type])
+    S.batchSelections[k].actions[type].value = val.trim();
+  updateBatchBarState();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// BATCH BAR & SUBMIT
+// ════════════════════════════════════════════════════════════════════════════
+function updateBatchBarState() {
+  var total = S.filtered.length, completed = 0;
+  S.filtered.forEach(function(iss) {
+    var k = cKey(iss); var sel = S.batchSelections[k];
+    if (sel && Object.keys(sel.actions).length > 0) {
+      var allValid = true;
+      for (var act in sel.actions) {
+        if ((act === 'SYSTEM_EQUAL' || act === 'SYSTEM_DIFF' || act === 'IMAGE_ISSUE') && !sel.actions[act].value)
+          allValid = false;
+      }
+      if (allValid) completed++;
+    }
+  });
+  var remaining = total - completed;
+  document.getElementById('summaryTotalCount').textContent     = total;
+  document.getElementById('summaryUpdatedCount').textContent   = completed;
+  document.getElementById('summaryRemainingCount').textContent = remaining;
+  document.getElementById('batchTotalCount').textContent       = total;
+  document.getElementById('batchCompletedCount').textContent   = completed;
+
+  var tag = document.getElementById('branchStatusTag');
+  if (total > 0 && completed === total) { tag.textContent = 'DONE ✅'; tag.classList.add('is-done'); }
+  else { tag.textContent = 'PENDING ⏳'; tag.classList.remove('is-done'); }
+
+  document.getElementById('btnBatchSubmit').disabled = (completed < total || total === 0);
+}
+
+function submitBatchTasks() {
+  var payload = [], missingCamera = false;
+  S.filtered.forEach(function(iss) {
+    var k = cKey(iss); var sel = S.batchSelections[k];
+    if (sel) {
+      for (var actType in sel.actions) {
+        var actObj = sel.actions[actType];
+        if ((actType === 'SYSTEM_EQUAL' || actType === 'SYSTEM_DIFF' || actType === 'IMAGE_ISSUE') && !actObj.value)
+          missingCamera = true;
+        payload.push({ issueData: iss, actionType: actType, actionValue: actObj.value || '' });
+      }
+    }
+  });
+
+  if (missingCamera) { toast('يلزم التقاط صورة لخيارات الرصيد والصورة', 'err'); return; }
+  if (payload.length < S.filtered.length) { toast('يجب تحديد الفيدباك لكل الكروت أولاً', 'err'); return; }
+
+  showLoader();
+  setLoaderText('جاري إرسال الفيدباك...');
+  callAPI('submitBatchFeedback', { items: payload }, function(err, res) {
+    hideLoader();
+    if (res && res.status === 'success') { toast('🎉 تم إرسال جميع الفيدباك بنجاح!', 'ok'); loadData(); }
+    else { toast('حدث خطأ أثناء الإرسال', 'err'); }
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════════════════════
+function doLogout() { clearCache(); location.reload(); }
+function cKey(iss) { return (iss.orderId + '_' + iss.itemSku).replace(/[^a-zA-Z0-9_]/g, '_'); }
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg, type) {
+  var wrap = document.getElementById('toastWrap'); var t = document.createElement('div');
+  t.className = 'toast ' + (type || 'inf'); t.textContent = msg; wrap.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3200);
+}
+function show(id) { document.getElementById(id).style.display = 'flex'; }
+function hide(id) { document.getElementById(id).style.display = 'none'; }
+function showLoader() { document.getElementById('globalLoader').style.display = 'flex'; }
+function hideLoader() { document.getElementById('globalLoader').style.display = 'none'; }
+function setLoaderText(t) { document.getElementById('loaderText').textContent = t; }
+
+function renderImageTag(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim()) return '<div style="font-size:36px; opacity:0.3;">📦</div>';
+  var url = rawUrl.trim();
+  if (url.indexOf('http') !== 0) return '<div style="font-size:36px; opacity:0.3;">📦</div>';
+  var p1 = 'https://images.weserv.nl/?url=' + encodeURIComponent(url);
+  var p2 = 'https://wsrv.nl/?url='          + encodeURIComponent(url);
+  return '<img src="' + esc(url) + '" class="center-product-img" referrerpolicy="no-referrer" crossorigin="anonymous" ' +
+    'onerror="this.onerror=null; this.src=\'' + esc(p1) + '\'; this.onerror=function(){ this.onerror=null; this.src=\'' + esc(p2) + '\'; this.onerror=function(){ this.parentElement.innerHTML=\'<div style=\\&quot;font-size:36px; opacity:0.3;\\&quot;>📦</div>\'; }; };">';
+}
+</script>
+</body>
+</html>
