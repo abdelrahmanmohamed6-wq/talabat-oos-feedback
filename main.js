@@ -1,10 +1,9 @@
-// 🔗 ضع رابط النشر (Deployment URL) من Google Apps Script هنا
+// 🔗 ضع رابط الـ Web App الخاص بك في Google Apps Script هنا
 var API_URL = "https://script.google.com/macros/s/AKfycbziTLyU0FDUiEntmO0oEI-nn7GUg1KuDlpGzK_SLdPZkwRULXzJ5r11lPOQ07R6hN6L/exec";
 
-var OWNER_EMAIL = 'abdelrahman.mohamed.6@talabat.com';
+var OWNER_EMAILS = ['abdelrahman.mohamed.6@talabat.com', 'abdelrahmannmohamedd.10@gmail.com'];
 var S = { user: null, userEmail: null, isOwner: false, ownerViewingUser: null, all: [], filtered: [], batchSelections: {}, allTeamNames: [] };
 
-// 🛡️ دالة JSONP العابرة للقيود بدون حظر CORS
 function callAPI(action, payload, callback) {
   var callbackName = 'jsonp_cb_' + Math.round(1000000 * Math.random());
   
@@ -45,15 +44,14 @@ document.addEventListener("DOMContentLoaded", function() {
   initGoogleAuth();
 });
 
-// 🔒 تسجيل الدخول بحساب جوجل مباشرة والتحقق من القائمة
 function initGoogleAuth() {
   showLoader();
-  setLoaderText("جاري التحقق من حساب جوجل...");
+  setLoaderText("جاري المصادقة وحظر غير المصرح لهم...");
 
   callAPI("verifyUserAuth", {}, function(err, res) {
     hideLoader();
     if (err || !res) {
-      showLoginScreen(false, "عفواً! تعذر الاتصال بالسيرفر للمصادقة");
+      showLoginScreen(false, "عفواً! تعذر الاتصال بالخادم للمصادقة");
       return;
     }
 
@@ -62,11 +60,48 @@ function initGoogleAuth() {
       S.userEmail = res.email;
       S.isOwner = res.isOwner;
       S.allTeamNames = res.allNames || [];
-      populateAdminDropdown();
-      loadData();
+      showSelfieModal();
     } else {
       showLoginScreen(false, res.message || "عفواً! هذا الحساب غير مصرح له بالدخول");
     }
+  });
+}
+
+function showSelfieModal() {
+  var modalHtml = `
+    <div id="selfieModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:white; border-radius:16px; padding:24px; max-width:380px; width:100%; text-align:center;">
+        <div style="font-size:32px; margin-bottom:8px;">📸</div>
+        <h3 style="font-size:16px; font-weight:900;">تسجيل صورة الدخول للحضور</h3>
+        <p style="font-size:11px; color:var(--text-2); margin-bottom:16px;">يرجى التقاط صورة سريعة للتحقق والبدء</p>
+        <input type="file" accept="image/*" capture="user" id="selfieInput" style="margin-bottom:12px; font-size:12px;" onchange="handleSelfieSelect(this)">
+        <button id="btnConfirmLogin" class="btn-login" style="width:100%; padding:10px;" onclick="confirmLoginWithPhoto()" disabled>بدء العمل ←</button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+var capturedSelfieData = "";
+
+function handleSelfieSelect(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    capturedSelfieData = e.target.result;
+    document.getElementById('btnConfirmLogin').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function confirmLoginWithPhoto() {
+  showLoader();
+  setLoaderText("جاري تسجـيل الحضور والموقع...");
+  callAPI("recordUserLogin", { name: S.user, email: S.userEmail, photo: capturedSelfieData }, function(err, res) {
+    var modal = document.getElementById('selfieModal');
+    if (modal) modal.remove();
+    populateAdminDropdown();
+    loadData();
   });
 }
 
@@ -75,14 +110,12 @@ function showLoginScreen(isAuthorized, msg) {
   show('loginScreen');
   var loginManual = document.getElementById('loginManual');
   if (loginManual) {
-    if (!isAuthorized) {
-      loginManual.innerHTML = `
-        <div style="color:var(--error); font-size:13px; font-weight:800; background:var(--error-bg); padding:12px; border-radius:8px; border:1px solid var(--error); margin-top:12px;">
-          ⚠️ ${msg || 'عفواً! هذا الحساب غير مصرح له بالدخول'}
-        </div>
-        <button class="btn-login" style="margin-top:16px;" onclick="location.reload()">🔄 إعادة المحاولة بحساب آخر</button>
-      `;
-    }
+    loginManual.innerHTML = `
+      <div style="color:var(--error); font-size:13px; font-weight:800; background:var(--error-bg); padding:12px; border-radius:8px; border:1px solid var(--error); margin-top:12px;">
+        ⚠️ ${msg || 'عفواً! هذا الحساب غير مصرح له بالدخول'}
+      </div>
+      <button class="btn-login" style="margin-top:16px;" onclick="location.reload()">🔄 إعادة المحاولة</button>
+    `;
   }
 }
 
@@ -122,6 +155,29 @@ function openAdminDashboardModal() {
     data.recentAuditLogs.forEach(function(log) {
       auditBody.innerHTML += `<tr><td>${log.feedbackDate}</td><td><b>${log.champ}</b></td><td>#${log.orderId}</td><td>${log.actionType}</td></tr>`;
     });
+
+    var loginBody = document.getElementById('dashLoginBody');
+    if (!loginBody) {
+      var modalBox = document.querySelector('.dash-box');
+      modalBox.insertAdjacentHTML('beforeend', `
+        <h4 style="font-weight:800; font-size:13px; margin-top:20px;">📸 سجل حضور ودخول الموظفين</h4>
+        <div style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">
+          <table style="width:100%; border-collapse:collapse; font-size:11px;">
+            <thead><tr style="background:var(--bg);"><th>الوقت</th><th>الموظف</th><th>البريد</th><th>الصورة</th></tr></thead>
+            <tbody id="dashLoginBody"></tbody>
+          </table>
+        </div>
+      `);
+      loginBody = document.getElementById('dashLoginBody');
+    }
+
+    loginBody.innerHTML = '';
+    (data.loginLogs || []).forEach(function(l) {
+      var photoHtml = l.photo && l.photo.startsWith("data:image") 
+        ? `<img src="${l.photo}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid var(--primary);">`
+        : '—';
+      loginBody.innerHTML += `<tr><td>${l.timestamp}</td><td><b>${l.name}</b></td><td>${l.email}</td><td>${photoHtml}</td></tr>`;
+    });
   });
 }
 
@@ -137,7 +193,6 @@ function loadData() {
     if (err || !res) { hideLoader(); toast('فشل التحميل', 'err'); return; }
     S.all = res.issues || []; S.batchSelections = {};
     
-    // بناء واستدعاء الفلاتر المترابطة لأول مرة
     updateCascadingFilters();
     applyFilters();
 
@@ -165,14 +220,12 @@ function loadData() {
 
 function refreshData() { loadData(); }
 
-// 🔄 نظام الفلاتر التفاعلية والمترابطة أوتوماتيكياً (Cascading Filters Engine)
 function updateCascadingFilters() {
   var selectedVendor    = document.getElementById('fVendor').value;
   var selectedBranch    = document.getElementById('fBranch').value;
   var selectedChainName = document.getElementById('fChainName').value;
   var selectedChainId   = document.getElementById('fChainId').value;
 
-  // تصفية البيانات المتاحة بناءً على الاختيارات الحالية للفلتر
   var available = S.all.filter(function(i) {
     if (selectedVendor    && i.vendorName !== selectedVendor)               return false;
     if (selectedBranch    && String(i.branchId) !== String(selectedBranch)) return false;
@@ -181,7 +234,6 @@ function updateCascadingFilters() {
     return true;
   });
 
-  // تجميع الخيارات المتاحة المرتبطة فقط
   var vendors = {}, branchIds = {}, chainNames = {}, chainIds = {};
 
   available.forEach(function(i) {
@@ -191,7 +243,6 @@ function updateCascadingFilters() {
     if (i.chainId)    chainIds[i.chainId] = true;
   });
 
-  // تحديث محتوى القوائم المنسدلة بدون مسح الخيار المحدد حالياً
   rebuildSelect('fVendor',    'كل الفروع',    Object.keys(vendors).sort(),    selectedVendor);
   rebuildSelect('fBranch',    'كل Vendor ID', Object.keys(branchIds).sort(),  selectedBranch);
   rebuildSelect('fChainName', 'كل Chain Name', Object.keys(chainNames).sort(), selectedChainName);
