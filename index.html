@@ -416,8 +416,7 @@ function handleCredentialResponse(response) {
     writeCache(res);
 
     if (S.isOwner) {
-      // مدير → دخول مباشر بدون صورة
-      callAPI('recordUserLogin', { name: S.user, email: S.userEmail, photo: 'دخول إداري مباشر' }, function() {});
+      // مدير → دخول مباشر بدون تسجيل حضور
       populateAdminDropdown();
       loadData();
     } else {
