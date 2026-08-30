@@ -44,9 +44,10 @@ document.addEventListener("DOMContentLoaded", function() {
   initGoogleAuth();
 });
 
+// 🔒 التحقق من البريد: يوجه الموظف لرفع الصورة، ويدخل المدير مباشرة
 function initGoogleAuth() {
   showLoader();
-  setLoaderText("جاري المصادقة وحظر غير المصرح لهم...");
+  setLoaderText("جاري التحقق من الصلاحيات...");
 
   callAPI("verifyUserAuth", {}, function(err, res) {
     hideLoader();
@@ -60,22 +61,32 @@ function initGoogleAuth() {
       S.userEmail = res.email;
       S.isOwner = res.isOwner;
       S.allTeamNames = res.allNames || [];
-      showSelfieModal();
+
+      // 👑 إذا كان صاحب الحساب إدارياً (Owner) -> يتخطى طلب الصورة ويدخل مباشرة
+      if (S.isOwner) {
+        callAPI("recordUserLogin", { name: S.user, email: S.userEmail, photo: "دخول إداري مباشر" }, function() {});
+        populateAdminDropdown();
+        loadData();
+      } else {
+        // 👷 إذا كان موظفاً عادي -> يظهر له شباك التقاط صورة الحضور إجبارياً
+        showSelfieModal();
+      }
     } else {
       showLoginScreen(false, res.message || "عفواً! هذا الحساب غير مصرح له بالدخول");
     }
   });
 }
 
+// 📸 نافذة التقاط/رفع الصورة الخاصة بالموظفين
 function showSelfieModal() {
   var modalHtml = `
     <div id="selfieModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
       <div style="background:white; border-radius:16px; padding:24px; max-width:380px; width:100%; text-align:center;">
         <div style="font-size:32px; margin-bottom:8px;">📸</div>
-        <h3 style="font-size:16px; font-weight:900;">تسجيل صورة الدخول للحضور</h3>
-        <p style="font-size:11px; color:var(--text-2); margin-bottom:16px;">يرجى التقاط صورة سريعة للتحقق والبدء</p>
+        <h3 style="font-size:16px; font-weight:900;">تسجيل صورة الحضور للموظف</h3>
+        <p style="font-size:11px; color:var(--text-2); margin-bottom:16px;">مرحباً ${S.user}، يرجى التقاط صورة شخصية لتأكيد تسجيل الحضور وتفعيل الجلسة</p>
         <input type="file" accept="image/*" capture="user" id="selfieInput" style="margin-bottom:12px; font-size:12px;" onchange="handleSelfieSelect(this)">
-        <button id="btnConfirmLogin" class="btn-login" style="width:100%; padding:10px;" onclick="confirmLoginWithPhoto()" disabled>بدء العمل ←</button>
+        <button id="btnConfirmLogin" class="btn-login" style="width:100%; padding:10px;" onclick="confirmLoginWithPhoto()" disabled>تأكيد الحضور وبدء العمل ←</button>
       </div>
     </div>
   `;
@@ -96,7 +107,7 @@ function handleSelfieSelect(input) {
 
 function confirmLoginWithPhoto() {
   showLoader();
-  setLoaderText("جاري تسجـيل الحضور والموقع...");
+  setLoaderText("جاري حفظ الحضور وتحميل البيانات...");
   callAPI("recordUserLogin", { name: S.user, email: S.userEmail, photo: capturedSelfieData }, function(err, res) {
     var modal = document.getElementById('selfieModal');
     if (modal) modal.remove();
@@ -160,7 +171,7 @@ function openAdminDashboardModal() {
     if (!loginBody) {
       var modalBox = document.querySelector('.dash-box');
       modalBox.insertAdjacentHTML('beforeend', `
-        <h4 style="font-weight:800; font-size:13px; margin-top:20px;">📸 سجل حضور ودخول الموظفين</h4>
+        <h4 style="font-weight:800; font-size:13px; margin-top:20px;">📸 سجل حضور ودخول الموظفين بالصور</h4>
         <div style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">
           <table style="width:100%; border-collapse:collapse; font-size:11px;">
             <thead><tr style="background:var(--bg);"><th>الوقت</th><th>الموظف</th><th>البريد</th><th>الصورة</th></tr></thead>
