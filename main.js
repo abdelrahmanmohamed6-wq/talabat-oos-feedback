@@ -1,7 +1,6 @@
 // 🔗 رابط الـ Web App الخاص بك في Google Apps Script
 var API_URL = "https://script.google.com/macros/s/AKfycbziTLyU0FDUiEntmO0oEI-nn7GUg1KuDlpGzK_SLdPZkwRULXzJ5r11lPOQ07R6hN6L/exec";
 
-var OWNER_EMAIL = 'abdelrahman.mohamed.6@talabat.com';
 var S = { user: null, userEmail: null, isOwner: false, ownerViewingUser: null, all: [], filtered: [], batchSelections: {}, allTeamNames: [] };
 
 // 🛡️ دالة الاستدعاء الذكية العابرة للقيود عبر JSONP
