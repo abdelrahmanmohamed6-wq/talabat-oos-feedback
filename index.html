@@ -3,34 +3,190 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="referrer" content="no-referrer">
   <title>Talabat OOS – بوابة الفيدباك</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --primary:        #FF6200;
+      --primary-light:  #FF8533;
+      --primary-dark:   #D94F00;
+      --primary-bg:     #FFF3EC;
+      --bg:     #F5F5F5;
+      --card:   #FFFFFF;
+      --text:   #1A1A1A;
+      --text-2: #6B7280;
+      --border: #E5E7EB;
+      --success:     #10B981;
+      --success-bg:  #ECFDF5;
+      --warning:     #F59E0B;
+      --warning-bg:  #FFFBEB;
+      --error:       #EF4444;
+      --error-bg:    #FEF2F2;
+      --info:        #3B82F6;
+      --info-bg:     #EFF6FF;
+      --purple:      #8B5CF6;
+      --purple-bg:   #F5F3FF;
+      --r:      12px;
+      --r-sm:   8px;
+      --r-lg:   18px;
+      --r-full: 9999px;
+      --shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body {
+      font-family: 'Cairo', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden;
+    }
+
+    #globalLoader {
+      position: fixed; inset: 0; background: var(--primary);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 9999; color: white;
+    }
+    .loader-bar-wrap { width: 160px; height: 4px; background: rgba(255,255,255,0.3); border-radius: var(--r-full); overflow: hidden; margin-top: 16px; }
+    .loader-bar { height: 100%; background: white; border-radius: var(--r-full); animation: animBar 1.2s ease-in-out infinite alternate; }
+    @keyframes animBar { from { width: 20%; } to { width: 90%; } }
+
+    #loginScreen { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 20px; background: var(--primary); }
+    .login-card { background: white; border-radius: 24px; padding: 36px 28px; width: 100%; max-width: 400px; text-align: center; }
+
+    #authErrorMsg {
+      display: none;
+      background: var(--error-bg);
+      color: var(--error);
+      padding: 12px 16px;
+      border-radius: var(--r-sm);
+      border: 1.5px solid var(--error);
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+
+    #appScreen { display: none; flex-direction: column; min-height: 100vh; }
+    #appScreen.on { display: flex; }
+
+    .app-header { background: white; border-bottom: 1px solid var(--border); padding: 0 16px; position: sticky; top: 0; z-index: 200; }
+    .header-row { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .brand-icon { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+
+    .admin-filter-bar { display: none; align-items: center; gap: 10px; padding: 10px 16px; background: var(--primary-bg); border-bottom: 1px solid var(--border); }
+    .admin-filter-bar.show { display: flex; }
+    .admin-user-select { flex: 1; padding: 8px; border: 1.5px solid var(--primary); border-radius: var(--r-sm); font-family: 'Cairo'; }
+
+    .branch-summary-bar {
+      background: #1E293B; color: white; padding: 10px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; font-weight: 700; border-bottom: 1px solid var(--border);
+    }
+    .branch-status-tag {
+      background: var(--warning); color: white; padding: 3px 10px;
+      border-radius: var(--r-full); font-size: 11px; font-weight: 900;
+    }
+    .branch-status-tag.is-done { background: var(--success); }
+
+    .filter-strip { padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap; background: white; border-bottom: 1px solid var(--border); }
+    .f-select { flex: 1; min-width: 120px; max-width: 180px; padding: 8px; border: 1.5px solid var(--border); border-radius: var(--r-sm); font-family: 'Cairo'; }
+
+    .items-wrap { flex: 1; padding: 12px 16px 140px; overflow-y: auto; }
+    .items-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .icard { background: white; border-radius: var(--r); box-shadow: var(--shadow); border: 1.5px solid transparent; overflow: hidden; }
+    .ch { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--primary-bg); border-bottom: 1px solid var(--border); }
+    .ch-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: var(--r-full); }
+    .p-not-found { background: var(--error-bg); color: var(--error); }
+    .p-active { background: var(--warning-bg); color: var(--warning); }
+
+    .cb { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+    .cb-info { direction: rtl; width: 100%; }
+    .cb-item-name { font-size: 13px; font-weight: 800; color: var(--text); background: var(--primary-bg); padding: 6px 9px; border-radius: var(--r-sm); margin-bottom: 6px; border-right: 3px solid var(--primary); }
+    .cb-sku { font-size: 10px; color: var(--text-2); font-family: monospace; margin-bottom: 6px; }
+    .cb-img-col { display: flex; align-items: center; justify-content: center; padding: 8px; border: 1px solid var(--border); border-radius: var(--r-sm); min-height: 180px; background: #FAFAFA; width: 100%; }
+    .center-product-img { max-width: 100%; max-height: 220px; object-fit: contain; border-radius: var(--r-sm); background: white; padding: 4px; }
+    .cb-actions { direction: rtl; display: flex; flex-direction: column; gap: 5px; width: 100%; }
+
+    .abt { width: 100%; padding: 8px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: white; font-family: 'Cairo'; font-size: 11px; font-weight: 700; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+    .abt.sel { border-width: 2px; border-color: var(--primary); background: var(--primary-bg); }
+
+    .aip { padding: 12px; border-top: 1px dashed var(--border); background: #FAFAFA; display: none; }
+    .aip.show { display: block; }
+
+    .batch-bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 2px solid var(--primary); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 -4px 16px rgba(0,0,0,0.1); z-index: 300; }
+    .btn-batch-submit { flex: 1; padding: 13px; background: var(--primary); color: white; border: none; border-radius: var(--r-sm); font-family: 'Cairo'; font-size: 15px; font-weight: 900; cursor: pointer; }
+    .btn-batch-submit:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+    #adminDashboardModal { display: none; position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 16px; }
+    #adminDashboardModal.on { display: flex; }
+    .dash-box { background: white; border-radius: var(--r-lg); padding: 24px; width: 100%; max-width: 850px; max-height: 90vh; overflow-y: auto; }
+    .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0; }
+    .dash-kpi { background: var(--bg); padding: 12px; border-radius: var(--r-sm); text-align: center; }
+
+    #toastWrap { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 6px; pointer-events: none; width: 90%; max-width: 360px; }
+    .toast { padding: 10px 14px; border-radius: var(--r-sm); font-size: 12px; font-weight: 700; color: white; text-align: center; }
+    .toast.ok { background: var(--success); }
+    .toast.err { background: var(--error); }
+    .toast.inf { background: var(--primary); }
+
+    @media (min-width: 681px) {
+      .cb { display: grid; grid-template-columns: 30% 40% 30%; direction: ltr; }
+      .cb-info { order: 3; }
+      .cb-img-col { order: 2; border-radius: 0; }
+      .cb-actions { order: 1; }
+    }
+  </style>
 </head>
 <body>
 
-<div id="globalLoader" style="display:none;">
+<div id="globalLoader">
   <div style="font-size:48px; margin-bottom:12px;">💉</div>
   <div id="loaderText" style="font-size:18px; font-weight:900; letter-spacing:1px;">TALABAT OOS</div>
   <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
 </div>
 
-<div id="loginScreen" style="display:flex;">
+<!-- ════════════════════════════════════════════════════════
+     شاشة تسجيل الدخول – Google OAuth فقط، بدون إدخال يدوي
+     ════════════════════════════════════════════════════════ -->
+<div id="loginScreen">
   <div class="login-card">
-    <div style="font-size:40px; margin-bottom:12px;">💉</div>
-    <h1 style="font-size:22px; font-weight:900;">بوابة الفيدباك</h1>
-    <p style="font-size:12px; color:var(--text-2); margin-bottom:20px;">Talabat OOS</p>
-    
-    <div id="loginManual">
-      <p style="font-size:12px; color:var(--text-2); margin-bottom:16px;">قم بإدخال بريد جوجل المسجل في شيت maping لتأكيد الهوية:</p>
-      <input type="email" id="emailInputAuth" placeholder="example@gmail.com" class="field-select" style="text-align:center; font-weight:700;">
-      <button class="btn-login" onclick="verifyAndLoginUser()">🔐 الدخول بحساب جوجل ←</button>
-      <div id="authErrorMsg" style="display:none; color:var(--error); font-size:12px; font-weight:800; background:var(--error-bg); padding:10px; border-radius:8px; border:1px solid var(--error); margin-top:12px;"></div>
+    <div style="font-size:44px; margin-bottom:12px;">💉</div>
+    <h1 style="font-size:22px; font-weight:900; margin-bottom:4px;">بوابة الفيدباك</h1>
+    <p style="font-size:12px; color:var(--text-2); margin-bottom:28px;">Talabat OOS · تسجيل الدخول بحساب Google</p>
+
+    <!--
+      data-client_id: استبدل YOUR_GOOGLE_CLIENT_ID بـ Client ID من Google Cloud Console
+      data-auto_select="true": يحاول تسجيل الدخول تلقائياً إذا كان هناك حساب واحد فقط مسجّل
+    -->
+    <div id="g_id_onload"
+         data-client_id="YOUR_GOOGLE_CLIENT_ID"
+         data-callback="handleCredentialResponse"
+         data-auto_select="true"
+         data-cancel_on_tap_outside="false">
     </div>
+
+    <div style="display:flex; justify-content:center;">
+      <div class="g_id_signin"
+           data-type="standard"
+           data-size="large"
+           data-theme="outline"
+           data-text="signin_with"
+           data-shape="rectangular"
+           data-logo_alignment="left"
+           data-width="280">
+      </div>
+    </div>
+
+    <div id="authErrorMsg"></div>
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════
+     شاشة التطبيق الرئيسية
+     ════════════════════════════════════════════════════════ -->
 <div id="appScreen">
   <header class="app-header">
     <div class="header-row">
@@ -53,18 +209,18 @@
 
   <div class="branch-summary-bar">
     <div>
-      إجمالي المنتجات: <span id="summaryTotalCount" style="color:var(--primary-light); font-weight:900;">0</span> | 
-      المحدثة: <span id="summaryUpdatedCount" style="color:var(--success); font-weight:900;">0</span> | 
-      المتبقية: <span id="summaryRemainingCount" style="color:var(--warning); font-weight:900;">0</span>
+      إجمالي: <span id="summaryTotalCount" style="color:var(--primary-light); font-weight:900;">0</span> |
+      محدّث: <span id="summaryUpdatedCount" style="color:var(--success); font-weight:900;">0</span> |
+      متبقي: <span id="summaryRemainingCount" style="color:var(--warning); font-weight:900;">0</span>
     </div>
     <div id="branchStatusTag" class="branch-status-tag">PENDING ⏳</div>
   </div>
 
   <div class="filter-strip">
-    <select id="fVendor" class="f-select" onchange="applyFilters()"><option value="">كل الفروع</option></select>
-    <select id="fBranch" class="f-select" onchange="applyFilters()"><option value="">كل Vendor ID</option></select>
+    <select id="fVendor"    class="f-select" onchange="applyFilters()"><option value="">كل الفروع</option></select>
+    <select id="fBranch"    class="f-select" onchange="applyFilters()"><option value="">كل Vendor ID</option></select>
     <select id="fChainName" class="f-select" onchange="applyFilters()"><option value="">كل Chain Name</option></select>
-    <select id="fChainId" class="f-select" onchange="applyFilters()"><option value="">كل Chain ID</option></select>
+    <select id="fChainId"   class="f-select" onchange="applyFilters()"><option value="">كل Chain ID</option></select>
     <button onclick="clearFilters()" style="padding:6px 12px; border:1px solid var(--error); color:var(--error); border-radius:var(--r-sm); background:white; font-size:11px; font-weight:800; cursor:pointer;">✕ مسح</button>
   </div>
 
@@ -78,38 +234,36 @@
 
   <div class="batch-bottom-bar">
     <div style="font-size:12px; font-weight:700;">
-      المهام المكتملة: <span id="batchCompletedCount" style="color:var(--primary); font-size:16px; font-weight:900;">0</span> / <span id="batchTotalCount">0</span>
+      مكتمل: <span id="batchCompletedCount" style="color:var(--primary); font-size:16px; font-weight:900;">0</span> / <span id="batchTotalCount">0</span>
     </div>
     <button class="btn-batch-submit" id="btnBatchSubmit" onclick="submitBatchTasks()" disabled>
-      🚀 إرسال الفيدباك المجمع (Submit Feedback)
+      🚀 إرسال الفيدباك المجمع
     </button>
   </div>
 </div>
 
+<!-- Admin Dashboard Modal -->
 <div id="adminDashboardModal">
   <div class="dash-box">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:16px;">
-      <h3 style="font-weight:900; font-size:16px;">👑 لوحة تحليلات المدير الإدارية</h3>
+      <h3 style="font-weight:900; font-size:16px;">👑 لوحة تحليلات المدير</h3>
       <button onclick="closeAdminDashboardModal()" style="border:none; background:var(--bg); padding:5px 10px; border-radius:var(--r-sm); font-weight:800; cursor:pointer;">✕</button>
     </div>
-
     <div class="dash-grid">
-      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--primary);" id="dashKpiTotal">0</div><div style="font-size:10px; color:var(--text-2);">إجمالي المهام</div></div>
-      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--warning);" id="dashKpiPending">0</div><div style="font-size:10px; color:var(--text-2);">المعلق الحالي</div></div>
-      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--success);" id="dashKpiCompleted">0</div><div style="font-size:10px; color:var(--text-2);">المكتمل</div></div>
-      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--info);" id="dashKpiRate">0%</div><div style="font-size:10px; color:var(--text-2);">نسبة الإنجاز</div></div>
+      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--primary);"    id="dashKpiTotal">0</div><div style="font-size:10px; color:var(--text-2);">إجمالي</div></div>
+      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--warning);"   id="dashKpiPending">0</div><div style="font-size:10px; color:var(--text-2);">معلّق</div></div>
+      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--success);"   id="dashKpiCompleted">0</div><div style="font-size:10px; color:var(--text-2);">مكتمل</div></div>
+      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--info);"      id="dashKpiRate">0%</div><div style="font-size:10px; color:var(--text-2);">الإنجاز</div></div>
     </div>
-
-    <h4 style="font-weight:800; font-size:13px; margin-top:16px;">👥 أداء فريق العمل</h4>
+    <h4 style="font-weight:800; font-size:13px; margin-top:16px;">👥 أداء الفريق</h4>
     <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:8px;">
-      <thead><tr style="background:var(--bg);"><th>الموظف</th><th>المعلق</th><th>المكتمل</th><th>الإنجاز</th></tr></thead>
+      <thead><tr style="background:var(--bg);"><th>الموظف</th><th>معلّق</th><th>مكتمل</th><th>الإنجاز</th></tr></thead>
       <tbody id="dashTeamBody"></tbody>
     </table>
-
-    <h4 style="font-weight:800; font-size:13px; margin-top:20px;">🕒 آخر الإجراءات الزمني</h4>
+    <h4 style="font-weight:800; font-size:13px; margin-top:20px;">🕒 آخر الإجراءات</h4>
     <div style="max-height:200px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">
       <table style="width:100%; border-collapse:collapse; font-size:11px;">
-        <thead><tr style="background:var(--bg);"><th>الوقت</th><th>الموظف</th><th>رقم الطلب</th><th>الإجراء</th></tr></thead>
+        <thead><tr style="background:var(--bg);"><th>الوقت</th><th>الموظف</th><th>الطلب</th><th>الإجراء</th></tr></thead>
         <tbody id="dashAuditBody"></tbody>
       </table>
     </div>
@@ -118,6 +272,459 @@
 
 <div id="toastWrap"></div>
 
-<script src="main.js"></script>
-</body>
-</html>
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// CONFIG – ضع رابط النشر من Apps Script هنا
+// ════════════════════════════════════════════════════════════════════════════
+var API_URL = "https://script.google.com/macros/s/AKfycbx9b9zCq_YPOM1z-gBbqVFtwK4x-Rstp9YeT2O8gEvEsD49312IOrIE-WCUa5vmPxYj/exec";
+
+// ════════════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════════════
+var S = {
+  user: null, userEmail: null, isOwner: false,
+  ownerViewingUser: null, currentToken: null,
+  all: [], filtered: [], batchSelections: {}, allTeamNames: []
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// SESSION CACHE – 8 ساعات
+// ════════════════════════════════════════════════════════════════════════════
+var _SKEY = 'oos_sess_v2';
+var _STTL = 8 * 60 * 60 * 1000;
+
+function readCache() {
+  try {
+    var c = JSON.parse(localStorage.getItem(_SKEY) || 'null');
+    return (c && (Date.now() - c.ts) < _STTL) ? c : null;
+  } catch(e) { return null; }
+}
+function writeCache(sess) {
+  try {
+    localStorage.setItem(_SKEY, JSON.stringify({
+      name: sess.name, email: sess.email,
+      isOwner: sess.isOwner, allNames: sess.allNames || [],
+      ts: Date.now()
+    }));
+  } catch(e) {}
+}
+function clearCache() { try { localStorage.removeItem(_SKEY); } catch(e) {} }
+
+// ════════════════════════════════════════════════════════════════════════════
+// JWT DECODER – يسحب بيانات المستخدم من Google token بدون مكتبة خارجية
+// ════════════════════════════════════════════════════════════════════════════
+function parseJwt(token) {
+  try {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var json = decodeURIComponent(
+      atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join('')
+    );
+    return JSON.parse(json);
+  } catch(e) { return null; }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// JSONP – الطريقة الوحيدة للتواصل مع Apps Script من GitHub Pages (بدون CORS)
+// ════════════════════════════════════════════════════════════════════════════
+function callAPI(action, payload, callback) {
+  var cbName = 'jsonp_' + Math.round(1e6 * Math.random());
+
+  var timeout = setTimeout(function() {
+    delete window[cbName];
+    if (callback) callback(new Error('انتهت مهلة الاتصال'), null);
+  }, 30000);
+
+  window[cbName] = function(data) {
+    clearTimeout(timeout);
+    delete window[cbName];
+    var el = document.getElementById(cbName);
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    if (callback) callback(null, data);
+  };
+
+  payload = payload || {};
+  if (S.currentToken) payload.id_token = S.currentToken;
+
+  var script = document.createElement('script');
+  script.id  = cbName;
+  script.src = API_URL + '?action=' + action +
+    '&payload=' + encodeURIComponent(JSON.stringify(payload)) +
+    '&callback=' + cbName;
+  script.onerror = function() {
+    clearTimeout(timeout);
+    delete window[cbName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    if (callback) callback(new Error('فشل الاتصال بالخادم'), null);
+  };
+  document.body.appendChild(script);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// BOOT – تحقق من الكاش أولاً، لو موجود ابدأ مباشرة، لو لا أظهر Google OAuth
+// ════════════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  var cached = readCache();
+  if (cached) {
+    S.user = cached.name; S.userEmail = cached.email;
+    S.isOwner = cached.isOwner; S.allTeamNames = cached.allNames || [];
+    populateAdminDropdown();
+    loadData();
+  } else {
+    hideLoader();
+    show('loginScreen');
+  }
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// GOOGLE OAUTH CALLBACK – بيتنادى أوتوماتيكياً بعد اختيار الحساب
+// ════════════════════════════════════════════════════════════════════════════
+function handleCredentialResponse(response) {
+  S.currentToken = response.credential;
+
+  // فك تشفير JWT لاستخراج الإيميل بدون إرساله لأي خادم خارجي
+  var tokenData = parseJwt(response.credential);
+  if (!tokenData || !tokenData.email) {
+    showAuthError('تعذر قراءة بيانات الحساب من Google. حاول مرة أخرى.');
+    return;
+  }
+
+  showLoader();
+  setLoaderText('جاري التحقق من صلاحيات الدخول في شيت maping...');
+
+  callAPI('verifyUserAuth', { email: tokenData.email }, function(err, res) {
+    hideLoader();
+
+    if (err || !res) {
+      showAuthError('تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مجدداً.');
+      return;
+    }
+
+    if (!res.isAuthorized) {
+      // حظر أحمر واضح للمستخدم غير المصرح له
+      showAuthError('🚫 ' + (res.message || 'هذا الحساب غير مصرح له بالدخول نهائياً.'));
+      return;
+    }
+
+    clearAuthError();
+    S.user         = res.name;
+    S.userEmail    = res.email;
+    S.isOwner      = res.isOwner;
+    S.allTeamNames = res.allNames || [];
+    writeCache(res);
+
+    if (S.isOwner) {
+      // مدير → دخول مباشر بدون صورة
+      callAPI('recordUserLogin', { name: S.user, email: S.userEmail, photo: 'دخول إداري مباشر' }, function() {});
+      populateAdminDropdown();
+      loadData();
+    } else {
+      // موظف → شاشة التقاط الصورة أولاً
+      showSelfieModal();
+    }
+  });
+}
+
+function showAuthError(msg) {
+  var el = document.getElementById('authErrorMsg');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+function clearAuthError() {
+  var el = document.getElementById('authErrorMsg');
+  if (el) { el.style.display = 'none'; el.textContent = ''; }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SELFIE MODAL – للموظفين فقط، إجبارية قبل رؤية البيانات
+// ════════════════════════════════════════════════════════════════════════════
+var capturedSelfieData = '';
+
+function showSelfieModal() {
+  var html =
+    '<div id="selfieModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">' +
+      '<div style="background:white; border-radius:16px; padding:28px; max-width:360px; width:100%; text-align:center;">' +
+        '<div style="font-size:48px; margin-bottom:12px;">📸</div>' +
+        '<h3 style="font-size:16px; font-weight:900; margin-bottom:8px;">إثبات الحضور بالصورة</h3>' +
+        '<p style="font-size:12px; color:var(--text-2); margin-bottom:20px;">مرحباً <strong>' + esc(S.user) + '</strong>، صورة الحضور إجبارية لتسجيل دوامك اليومي</p>' +
+        '<input type="file" accept="image/*" capture="user" id="selfieInput" style="margin-bottom:16px; font-size:12px;" onchange="handleSelfieSelect(this)">' +
+        '<div id="selfiePreview" style="margin-bottom:16px;"></div>' +
+        '<button id="btnConfirmLogin" onclick="confirmLoginWithPhoto()" disabled ' +
+          'style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:var(--r-sm); font-family:\'Cairo\'; font-weight:900; font-size:14px; cursor:pointer; opacity:0.5;">' +
+          'تأكيد الحضور وبدء العمل ←</button>' +
+      '</div>' +
+    '</div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function handleSelfieSelect(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    capturedSelfieData = e.target.result;
+    var preview = document.getElementById('selfiePreview');
+    if (preview) preview.innerHTML = '<img src="' + capturedSelfieData + '" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">';
+    var btn = document.getElementById('btnConfirmLogin');
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+function confirmLoginWithPhoto() {
+  showLoader();
+  setLoaderText('جاري تسجيل الحضور وتحميل البيانات...');
+  callAPI('recordUserLogin', { name: S.user, email: S.userEmail, photo: capturedSelfieData }, function() {
+    capturedSelfieData = '';
+    var modal = document.getElementById('selfieModal');
+    if (modal) modal.remove();
+    populateAdminDropdown();
+    loadData();
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ADMIN CONTROLS
+// ════════════════════════════════════════════════════════════════════════════
+function populateAdminDropdown() {
+  var sel = document.getElementById('adminUserSelect');
+  if (!sel) return;
+  sel.innerHTML = '<option value="__ALL__">— كل أعضاء الفريق —</option>';
+  S.allTeamNames.forEach(function(n) {
+    var o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
+  });
+}
+
+function adminLoadSelected() {
+  var sel = document.getElementById('adminUserSelect');
+  S.ownerViewingUser = (sel.value === '__ALL__') ? null : sel.value;
+  loadData();
+}
+
+function openAdminDashboardModal() {
+  document.getElementById('adminDashboardModal').classList.add('on');
+  callAPI('getAdminAnalytics', { email: S.userEmail }, function(err, data) {
+    if (err || !data) return;
+
+    document.getElementById('dashKpiTotal').textContent     = data.kpis.total;
+    document.getElementById('dashKpiPending').textContent   = data.kpis.pending;
+    document.getElementById('dashKpiCompleted').textContent = data.kpis.completed;
+    document.getElementById('dashKpiRate').textContent      = data.kpis.completionRate + '%';
+
+    var teamBody = document.getElementById('dashTeamBody'); teamBody.innerHTML = '';
+    for (var champ in data.teamStats) {
+      var st = data.teamStats[champ]; var tot = st.pending + st.completed;
+      var rate = tot > 0 ? Math.round((st.completed / tot) * 100) : 0;
+      teamBody.innerHTML += '<tr><td><b>' + esc(champ) + '</b></td><td>' + st.pending + '</td><td>' + st.completed + '</td><td><b>' + rate + '%</b></td></tr>';
+    }
+
+    var auditBody = document.getElementById('dashAuditBody'); auditBody.innerHTML = '';
+    (data.recentAuditLogs || []).forEach(function(log) {
+      auditBody.innerHTML += '<tr><td>' + log.feedbackDate + '</td><td><b>' + esc(log.champ) + '</b></td><td>#' + esc(log.orderId) + '</td><td>' + esc(log.actionType) + '</td></tr>';
+    });
+
+    // جدول سجل الحضور (يُضاف مرة واحدة فقط)
+    if (!document.getElementById('dashLoginBody')) {
+      document.querySelector('.dash-box').insertAdjacentHTML('beforeend',
+        '<h4 style="font-weight:800; font-size:13px; margin-top:20px;">📸 سجل حضور الموظفين</h4>' +
+        '<div style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">' +
+          '<table style="width:100%; border-collapse:collapse; font-size:11px;">' +
+            '<thead><tr style="background:var(--bg);"><th>الوقت</th><th>الموظف</th><th>البريد</th><th>الصورة</th></tr></thead>' +
+            '<tbody id="dashLoginBody"></tbody>' +
+          '</table>' +
+        '</div>'
+      );
+    }
+    var loginBody = document.getElementById('dashLoginBody'); loginBody.innerHTML = '';
+    (data.loginLogs || []).forEach(function(l) {
+      var photoHtml = (l.photo && l.photo.indexOf('data:image') === 0)
+        ? '<img src="' + l.photo + '" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid var(--primary);">'
+        : '—';
+      loginBody.innerHTML += '<tr><td>' + l.timestamp + '</td><td><b>' + esc(l.name) + '</b></td><td>' + esc(l.email) + '</td><td>' + photoHtml + '</td></tr>';
+    });
+  });
+}
+
+function closeAdminDashboardModal() {
+  document.getElementById('adminDashboardModal').classList.remove('on');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DATA LOADING
+// ════════════════════════════════════════════════════════════════════════════
+function loadData() {
+  showLoader();
+  setLoaderText('جاري قراءة البيانات...');
+  var action  = S.isOwner ? 'getOwnerData'  : 'getUserData';
+  var payload = S.isOwner ? { filterName: S.ownerViewingUser } : { user: S.user };
+
+  callAPI(action, payload, function(err, res) {
+    hideLoader();
+    if (err || !res) { toast('فشل التحميل – تحقق من الاتصال', 'err'); return; }
+    _onDataLoaded(res);
+  });
+}
+
+function _onDataLoaded(res) {
+  S.all = res.issues || [];
+  S.batchSelections = {};
+  updateCascadingFilters();
+  applyFilters();
+
+  hide('loginScreen');
+  document.getElementById('appScreen').classList.add('on');
+
+  var label = S.user;
+  if (S.isOwner && S.ownerViewingUser)  label = '👁️ ' + S.ownerViewingUser;
+  if (S.isOwner && !S.ownerViewingUser) label = 'كل الفريق';
+  document.getElementById('headerName').textContent = label;
+
+  if (S.isOwner) {
+    document.getElementById('adminFilterBar').classList.add('show');
+    document.getElementById('btnDashTrigger').style.display = 'inline-block';
+    document.getElementById('adminUserSelect').value = S.ownerViewingUser || '__ALL__';
+  } else {
+    document.getElementById('adminFilterBar').classList.remove('show');
+    document.getElementById('btnDashTrigger').style.display = 'none';
+  }
+
+  toast(S.all.length ? 'تم تحميل ' + S.all.length + ' عنصر 📋' : 'لا توجد عناصر معلقة 🎉', 'inf');
+}
+
+function refreshData() { loadData(); }
+
+// ════════════════════════════════════════════════════════════════════════════
+// CASCADING FILTERS – يُعيد بناء القوائم بناءً على الاختيار الحالي
+// ════════════════════════════════════════════════════════════════════════════
+function updateCascadingFilters() {
+  var selV = document.getElementById('fVendor').value;
+  var selB = document.getElementById('fBranch').value;
+  var selC = document.getElementById('fChainName').value;
+  var selI = document.getElementById('fChainId').value;
+
+  var subset = S.all.filter(function(i) {
+    if (selV && i.vendorName !== selV)               return false;
+    if (selB && String(i.branchId) !== String(selB)) return false;
+    if (selC && i.chainName  !== selC)               return false;
+    if (selI && String(i.chainId) !== String(selI))  return false;
+    return true;
+  });
+
+  var vendors = {}, branchIds = {}, chainNames = {}, chainIds = {};
+  subset.forEach(function(i) {
+    if (i.vendorName) vendors[i.vendorName]     = true;
+    if (i.branchId)   branchIds[i.branchId]     = true;
+    if (i.chainName)  chainNames[i.chainName]   = true;
+    if (i.chainId)    chainIds[i.chainId]       = true;
+  });
+
+  rebuildSelect('fVendor',    'كل الفروع',     Object.keys(vendors).sort(),    selV);
+  rebuildSelect('fBranch',    'كل Vendor ID',  Object.keys(branchIds).sort(),  selB);
+  rebuildSelect('fChainName', 'كل Chain Name', Object.keys(chainNames).sort(), selC);
+  rebuildSelect('fChainId',   'كل Chain ID',   Object.keys(chainIds).sort(),   selI);
+}
+
+function rebuildSelect(id, placeholder, opts, selected) {
+  var sel = document.getElementById(id);
+  sel.innerHTML = '<option value="">' + placeholder + '</option>';
+  opts.forEach(function(v) {
+    var o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    if (v === selected) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function applyFilters() {
+  updateCascadingFilters();
+  var vendor    = document.getElementById('fVendor').value;
+  var branch    = document.getElementById('fBranch').value;
+  var chainName = document.getElementById('fChainName').value;
+  var chainId   = document.getElementById('fChainId').value;
+
+  S.filtered = S.all.filter(function(i) {
+    if (vendor    && i.vendorName !== vendor)               return false;
+    if (branch    && String(i.branchId) !== String(branch)) return false;
+    if (chainName && i.chainName  !== chainName)            return false;
+    if (chainId   && String(i.chainId) !== String(chainId)) return false;
+    return true;
+  });
+  renderItems();
+  updateBatchBarState();
+}
+
+function clearFilters() {
+  ['fVendor','fBranch','fChainName','fChainId'].forEach(function(id) { document.getElementById(id).value = ''; });
+  applyFilters();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════════════════════════
+function renderItems() {
+  var list  = document.getElementById('itemsList');
+  var empty = document.getElementById('emptyState');
+  list.innerHTML = '';
+  if (!S.filtered.length) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  S.filtered.forEach(function(issue) { list.appendChild(buildCard(issue)); });
+}
+
+function buildCard(iss) {
+  var k   = cKey(iss);
+  var div = document.createElement('div'); div.className = 'icard'; div.id = 'icard_' + k;
+  var pelicanClass = iss.pelicanStatus
+    ? (iss.pelicanStatus.toLowerCase().indexOf('not_found') !== -1 ? 'p-not-found' : 'p-active')
+    : '';
+
+  div.innerHTML =
+    '<div class="ch">' +
+      '<span class="ch-date">📅 ' + (iss.orderDate || '—') + '</span>' +
+      '<span class="ch-badge ' + pelicanClass + '">' + esc(iss.pelicanStatus || 'N/A') + '</span>' +
+    '</div>' +
+    '<div class="cb">' +
+      '<div class="cb-info">' +
+        '<div class="cb-item-name">🏷️ ' + esc(iss.itemName || '—') + '</div>' +
+        '<div class="cb-sku">SKU: ' + esc(iss.itemSku || '—') + '</div>' +
+        '<div style="font-size:11px; font-weight:800; margin-bottom:4px;">🏪 ' + esc(iss.vendorName || '—') + '</div>' +
+        '<div style="font-size:10px; color:var(--text-2); display:flex; flex-direction:column; gap:2px;">' +
+          '<div>🔖 فرع: <strong>' + esc(String(iss.branchId || '—')) + '</strong></div>' +
+          '<div>📦 طلب: <strong>#' + esc(iss.orderId || '—') + '</strong></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cb-img-col">' + renderImageTag(iss.imageUrl) + '</div>' +
+      '<div class="cb-actions">' +
+        abt('t-oos',     '✅', 'رصيد السيستم = الرصيد الفعلي', k, 'SYSTEM_EQUAL') +
+        abt('t-sub',     '⚠️', 'رصيد الفعلي ≠ السيستم',        k, 'SYSTEM_DIFF')  +
+        abt('t-del',     '✏️', 'تعديل اسم المنتج',              k, 'EDIT_NAME')    +
+        abt('t-barcode', '🔢', 'تعديل الباركود',                k, 'EDIT_BARCODE') +
+        abt('t-sku',     '🔑', 'تعديل الـ SKU',                  k, 'EDIT_SKU')     +
+        abt('t-img',     '📷', 'صورة',                          k, 'IMAGE_ISSUE')  +
+        abt('t-note',    '📝', 'ملاحظة',                        k, 'OTHER')        +
+      '</div>' +
+    '</div>' +
+    '<div class="aip" id="aip_' + k + '"></div>';
+
+  return div;
+}
+
+function abt(cls, icon, label, k, type) {
+  return '<button class="abt ' + cls + '" id="abt_' + k + '_' + type + '" ' +
+    'onclick="toggleAction(\'' + k + '\',\'' + type + '\')">' +
+    '<span><span style="font-size:13px; margin-left:4px;">' + icon + '</span>' + label + '</span>' +
+    '<span id="chk_' + k + '_' + type + '" style="font-weight:900;"></span></button>';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FEEDBACK ACTIONS
+// ════════════════════════════════════════════════════════════════════════════
+function toggleAction(k, type) {
+  if (!S.batchSelections[k]) {
+    S.batchSelections[k] = {
+      issueData: S.filtered.find(function(i) { return cKey(i) === k; }),
+      actions: {}
+    };
+  }
+  var actions = S.batchSelections[k].actions;
+  var btn = document.getElementById('abt_' + k + '_' + type);
+  var chk = document
