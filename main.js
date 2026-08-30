@@ -1,7 +1,7 @@
 // 🔗 ضع رابط النشر المباشر من Google Apps Script هنا
-var API_URL = "https://script.google.com/macros/s/AKfycbziTLyU0FDUiEntmO0oEI-nn7GUg1KuDlpGzK_SLdPZkwRULXzJ5r11lPOQ07R6hN6L/exec";
+var API_URL = "https://script.google.com/macros/s/AKfycbx9b9zCq_YPOM1z-gBbqVFtwK4x-Rstp9YeT2O8gEvEsD49312IOrIE-WCUa5vmPxYj/exec";
 
-var S = { user: null, userEmail: null, isOwner: false, ownerViewingUser: null, all: [], filtered: [], batchSelections: {}, allTeamNames: [] };
+var S = { user: null, userEmail: null, isOwner: false, ownerViewingUser: null, all: [], filtered: [], batchSelections: {}, allTeamNames: [], currentToken: null };
 
 function callAPI(action, payload, callback) {
   var callbackName = 'jsonp_cb_' + Math.round(1000000 * Math.random());
@@ -13,15 +13,19 @@ function callAPI(action, payload, callback) {
     if (callback) callback(null, data);
   };
 
+  // إرفاق التوكين الأمني مع كل طلب لتأمين البيانات
+  payload = payload || {};
+  payload.id_token = S.currentToken;
+
   var script = document.createElement('script');
   script.id = callbackName;
-  var encodedPayload = encodeURIComponent(JSON.stringify(payload || {}));
+  var encodedPayload = encodeURIComponent(JSON.stringify(payload));
   script.src = API_URL + '?action=' + action + '&payload=' + encodedPayload + '&callback=' + callbackName;
   
   script.onerror = function() {
     delete window[callbackName];
     if (script.parentNode) script.parentNode.removeChild(script);
-    if (callback) callback(new Error('فشل الاتصال بالخادم'), null);
+    if (callback) callback(new Error('فشل الاتصال بالخادم الأمني'), null);
   };
 
   document.body.appendChild(script);
@@ -40,18 +44,24 @@ function renderImageTag(rawUrl) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-  initApp();
+  hideLoader();
+  show('loginScreen');
 });
 
-function initApp() {
+// 🔑 الاستجابة الأوتوماتيكية فور اختيار الموظف لحسابه في نافذة جوجل
+function handleCredentialResponse(response) {
+  var idToken = response.credential;
+  S.currentToken = idToken;
+  
   showLoader();
-  setLoaderText("جاري المصادقة...");
+  setLoaderText("جاري فك التشفير والتحقق من شيت maping...");
 
-  // الدخول المباشر بالبريد الإداري
-  callAPI("verifyUserAuth", { email: "abdelrahmannmohamedd.10@gmail.com" }, function(err, res) {
+  callAPI("verifyUserAuth", {}, function(err, res) {
     hideLoader();
+    var errBox = document.getElementById('authErrorMsg');
+    
     if (err || !res) {
-      toast("تعذر الاتصال بالسيرفر", "err");
+      if (errBox) { errBox.style.display = 'block'; errBox.textContent = 'تعذر الاتصال بسيرفر الأمان'; }
       return;
     }
 
@@ -62,14 +72,17 @@ function initApp() {
       S.allTeamNames = res.allNames || [];
 
       if (S.isOwner) {
-        callAPI("recordUserLogin", { name: S.user, email: S.userEmail, photo: "دخول إداري مباشر" }, function() {});
+        callAPI("recordUserLogin", { photo: "دخول إداري مباشر" }, function() {});
         populateAdminDropdown();
         loadData();
       } else {
         showSelfieModal();
       }
     } else {
-      toast(res.message || "حساب غير مصرح به", "err");
+      if (errBox) {
+        errBox.style.display = 'block';
+        errBox.textContent = res.message || "حظر أمني: هذا الحساب غير مصرح له بالدخول نهائياً.";
+      }
     }
   });
 }
@@ -103,8 +116,8 @@ function handleSelfieSelect(input) {
 
 function confirmLoginWithPhoto() {
   showLoader();
-  setLoaderText("جاري حفظ الحضور وتحميل البيانات...");
-  callAPI("recordUserLogin", { name: S.user, email: S.userEmail, photo: capturedSelfieData }, function(err, res) {
+  setLoaderText("جاري تسجيل الحضور وتحميل البيانات...");
+  callAPI("recordUserLogin", { photo: capturedSelfieData }, function(err, res) {
     var modal = document.getElementById('selfieModal');
     if (modal) modal.remove();
     populateAdminDropdown();
@@ -130,7 +143,7 @@ function adminLoadSelected() {
 
 function openAdminDashboardModal() {
   document.getElementById('adminDashboardModal').classList.add('on');
-  callAPI("getAdminAnalytics", { email: S.userEmail }, function(err, data) {
+  callAPI("getAdminAnalytics", {}, function(err, data) {
     if (err || !data) return;
     document.getElementById('dashKpiTotal').textContent     = data.kpis.total;
     document.getElementById('dashKpiPending').textContent   = data.kpis.pending;
@@ -178,12 +191,12 @@ function closeAdminDashboardModal() { document.getElementById('adminDashboardMod
 
 function loadData() {
   showLoader();
-  setLoaderText("جاري تحميل البيانات...");
+  setLoaderText("جاري قراءة البيانات...");
   var action = S.isOwner ? "getOwnerData" : "getUserData";
   var payload = S.isOwner ? { filterName: S.ownerViewingUser } : { user: S.user };
 
   callAPI(action, payload, function(err, res) {
-    if (err || !res) { hideLoader(); toast('فشل التحميل', 'err'); return; }
+    if (err || !res || res.status === "unauthorized") { hideLoader(); toast('غير مصرح لك بقراءة البيانات', 'err'); return; }
     S.all = res.issues || []; S.batchSelections = {};
     
     updateCascadingFilters();
