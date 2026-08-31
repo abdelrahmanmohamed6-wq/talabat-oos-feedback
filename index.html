@@ -461,11 +461,23 @@ function handleSelfieSelect(input) {
   var file = input.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    capturedSelfieData = e.target.result;
-    var preview = document.getElementById('selfiePreview');
-    if (preview) preview.innerHTML = '<img src="' + capturedSelfieData + '" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">';
-    var btn = document.getElementById('btnConfirmLogin');
-    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    var img = new Image();
+    img.onload = function() {
+      // ضغط الصورة لـ 300×300 بحد أقصى عشان تتخزن في Google Sheets بدون مشاكل
+      var MAX = 300;
+      var ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+      var canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      capturedSelfieData = canvas.toDataURL('image/jpeg', 0.72);
+
+      var preview = document.getElementById('selfiePreview');
+      if (preview) preview.innerHTML = '<img src="' + capturedSelfieData + '" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">';
+      var btn = document.getElementById('btnConfirmLogin');
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
