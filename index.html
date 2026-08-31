@@ -132,6 +132,25 @@
     .toast.err { background: var(--error); }
     .toast.inf { background: var(--primary); }
 
+    /* ── Attendance Cards ── */
+    .att-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+    .att-filter-input { flex:1; min-width:130px; padding:7px 10px; border:1.5px solid var(--border); border-radius:var(--r-sm); font-family:'Cairo'; font-size:12px; }
+    .att-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+    .att-card { background:var(--bg); border-radius:var(--r); padding:14px; display:flex; gap:12px; align-items:flex-start; border:1px solid var(--border); }
+    .att-photo { width:56px; height:56px; border-radius:50%; object-fit:cover; border:2.5px solid var(--primary); flex-shrink:0; }
+    .att-photo-ph { width:56px; height:56px; border-radius:50%; background:var(--primary-bg); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+    .att-info { flex:1; min-width:0; }
+    .att-name { font-weight:900; font-size:13px; margin-bottom:4px; }
+    .att-row { font-size:11px; color:var(--text-2); margin-bottom:2px; }
+    .att-badge { display:inline-block; background:var(--success-bg); color:var(--success); font-size:10px; font-weight:800; padding:2px 7px; border-radius:var(--r-full); margin-left:4px; }
+    /* ── Summary Form ── */
+    .sf-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px; }
+    .sf-box { background:white; border-radius:var(--r-lg); padding:24px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; }
+    .sf-field { margin-bottom:14px; }
+    .sf-label { display:block; font-size:12px; font-weight:800; margin-bottom:5px; color:var(--text); }
+    .sf-input { width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:var(--r-sm); font-family:'Cairo'; font-size:12px; }
+    .sf-input:focus { outline:none; border-color:var(--primary); }
+
     @media (min-width: 681px) {
       .cb { display: grid; grid-template-columns: 28% 34% 38%; direction: ltr; gap: 0; }
       .cb-info { order: 3; padding: 12px 14px 12px 8px; min-width: 0; word-break: break-word; overflow-wrap: break-word; }
@@ -251,24 +270,41 @@
       <h3 style="font-weight:900; font-size:16px;">👑 لوحة تحليلات المدير</h3>
       <button onclick="closeAdminDashboardModal()" style="border:none; background:var(--bg); padding:5px 10px; border-radius:var(--r-sm); font-weight:800; cursor:pointer;">✕</button>
     </div>
+
+    <!-- KPIs -->
     <div class="dash-grid">
-      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--primary);"    id="dashKpiTotal">0</div><div style="font-size:10px; color:var(--text-2);">إجمالي</div></div>
-      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--warning);"   id="dashKpiPending">0</div><div style="font-size:10px; color:var(--text-2);">معلّق</div></div>
-      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--success);"   id="dashKpiCompleted">0</div><div style="font-size:10px; color:var(--text-2);">مكتمل</div></div>
-      <div class="dash-kpi"><div style="font-size:20px; font-weight:900; color:var(--info);"      id="dashKpiRate">0%</div><div style="font-size:10px; color:var(--text-2);">الإنجاز</div></div>
+      <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--primary);"  id="dashKpiTotal">0</div><div style="font-size:10px;color:var(--text-2);">إجمالي</div></div>
+      <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--warning);" id="dashKpiPending">0</div><div style="font-size:10px;color:var(--text-2);">معلّق</div></div>
+      <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--success);" id="dashKpiCompleted">0</div><div style="font-size:10px;color:var(--text-2);">مكتمل</div></div>
+      <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--info);"    id="dashKpiRate">0%</div><div style="font-size:10px;color:var(--text-2);">الإنجاز</div></div>
     </div>
-    <h4 style="font-weight:800; font-size:13px; margin-top:16px;">👥 أداء الفريق</h4>
-    <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:8px;">
+
+    <!-- Team Performance -->
+    <h4 style="font-weight:800;font-size:13px;margin-top:16px;">👥 أداء الفريق</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;">
       <thead><tr style="background:var(--bg);"><th>الموظف</th><th>معلّق</th><th>مكتمل</th><th>الإنجاز</th></tr></thead>
       <tbody id="dashTeamBody"></tbody>
     </table>
-    <h4 style="font-weight:800; font-size:13px; margin-top:20px;">🕒 آخر الإجراءات</h4>
-    <div style="max-height:200px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">
-      <table style="width:100%; border-collapse:collapse; font-size:11px;">
+
+    <!-- Last Actions -->
+    <h4 style="font-weight:800;font-size:13px;margin-top:20px;">🕒 آخر الإجراءات</h4>
+    <div style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);margin-top:6px;">
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
         <thead><tr style="background:var(--bg);"><th>الوقت</th><th>الموظف</th><th>الطلب</th><th>الإجراء</th></tr></thead>
         <tbody id="dashAuditBody"></tbody>
       </table>
     </div>
+
+    <!-- Attendance Section -->
+    <h4 style="font-weight:800;font-size:13px;margin-top:24px;padding-top:16px;border-top:2px solid var(--border);">📸 سجل الحضور والموقع</h4>
+    <div class="att-filters" style="margin-top:10px;">
+      <input type="date" id="attFilterDate" class="att-filter-input" onchange="renderAttendance()" placeholder="اختر التاريخ">
+      <select id="attFilterEmp" class="att-filter-input" onchange="renderAttendance()">
+        <option value="">— كل الموظفين —</option>
+      </select>
+      <button onclick="document.getElementById('attFilterDate').value='';document.getElementById('attFilterEmp').value='';renderAttendance();" style="padding:7px 12px;border:1px solid var(--border);border-radius:var(--r-sm);background:white;font-size:11px;font-weight:800;cursor:pointer;">✕ مسح</button>
+    </div>
+    <div id="attGrid" class="att-grid"></div>
   </div>
 </div>
 
@@ -286,7 +322,8 @@ var API_URL = "https://script.google.com/macros/s/AKfycbznB00iy0BqvxICzczKJsKRs_
 var S = {
   user: null, userEmail: null, isOwner: false,
   ownerViewingUser: null, currentToken: null,
-  all: [], filtered: [], batchSelections: {}, allTeamNames: []
+  all: [], filtered: [], batchSelections: {}, allTeamNames: [],
+  location: null, loginTime: null
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -418,14 +455,62 @@ function handleCredentialResponse(response) {
     writeCache(res);
 
     if (S.isOwner) {
-      // مدير → دخول مباشر بدون تسجيل حضور
       populateAdminDropdown();
       loadData();
     } else {
-      // موظف → شاشة التقاط الصورة أولاً
-      showSelfieModal();
+      S.loginTime = new Date().toISOString();
+      requestLocationThenSelfie();
     }
   });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// LOCATION – إجباري للموظفين قبل السيلفي
+// ════════════════════════════════════════════════════════════════════════════
+function requestLocationThenSelfie() {
+  if (!navigator.geolocation) {
+    showAuthError('متصفحك لا يدعم تحديد الموقع. استخدم Chrome أو Safari.');
+    return;
+  }
+
+  // شاشة انتظار الموقع
+  var overlay = document.createElement('div');
+  overlay.id = 'locWaiting';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(255,98,0,0.96);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;padding:24px;';
+  overlay.innerHTML =
+    '<div style="font-size:56px;margin-bottom:16px;">📍</div>' +
+    '<div style="font-size:18px;font-weight:900;margin-bottom:8px;">جاري تحديد موقعك...</div>' +
+    '<div style="font-size:13px;opacity:0.85;">اضغط "السماح" في نافذة المتصفح</div>';
+  document.body.appendChild(overlay);
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var el = document.getElementById('locWaiting');
+      if (el) el.remove();
+      S.location = {
+        lat:      pos.coords.latitude,
+        lng:      pos.coords.longitude,
+        accuracy: Math.round(pos.coords.accuracy),
+        mapsUrl:  'https://www.google.com/maps?q=' + pos.coords.latitude + ',' + pos.coords.longitude
+      };
+      showSelfieModal();
+    },
+    function() {
+      var el = document.getElementById('locWaiting');
+      if (el) el.remove();
+      // شاشة حظر كاملة – لا يمكن المتابعة بدون موقع
+      var block = document.createElement('div');
+      block.id = 'locBlocked';
+      block.style.cssText = 'position:fixed;inset:0;background:#1E293B;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;padding:24px;';
+      block.innerHTML =
+        '<div style="font-size:56px;margin-bottom:16px;">🚫</div>' +
+        '<div style="font-size:18px;font-weight:900;margin-bottom:8px;">الموقع مطلوب للمتابعة</div>' +
+        '<div style="font-size:13px;opacity:0.75;margin-bottom:24px;line-height:1.8;">يجب السماح بالوصول للموقع لتسجيل الحضور.<br>افتح إعدادات المتصفح وسمح بالموقع لهذا الموقع.</div>' +
+        '<button onclick="location.reload()" style="padding:12px 28px;background:var(--primary);color:white;border:none;border-radius:12px;font-family:Cairo;font-size:14px;font-weight:900;cursor:pointer;">إعادة المحاولة</button>';
+      document.body.appendChild(block);
+    },
+    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+  );
 }
 
 function showAuthError(msg) {
@@ -487,7 +572,17 @@ function handleSelfieSelect(input) {
 function confirmLoginWithPhoto() {
   showLoader();
   setLoaderText('جاري تسجيل الحضور وتحميل البيانات...');
-  callAPI('recordUserLogin', { name: S.user, email: S.userEmail, photo: capturedSelfieData }, function() {
+  var loc = S.location || {};
+  callAPI('recordUserLogin', {
+    name:      S.user,
+    email:     S.userEmail,
+    photo:     capturedSelfieData,
+    loginTime: S.loginTime || new Date().toISOString(),
+    lat:       loc.lat      || '',
+    lng:       loc.lng      || '',
+    accuracy:  loc.accuracy || '',
+    mapsUrl:   loc.mapsUrl  || ''
+  }, function() {
     capturedSelfieData = '';
     var modal = document.getElementById('selfieModal');
     if (modal) modal.remove();
@@ -514,6 +609,8 @@ function adminLoadSelected() {
   loadData();
 }
 
+var _allLoginLogs = [];
+
 function openAdminDashboardModal() {
   document.getElementById('adminDashboardModal').classList.add('on');
   callAPI('getAdminAnalytics', { email: S.userEmail }, function(err, data) {
@@ -536,25 +633,63 @@ function openAdminDashboardModal() {
       auditBody.innerHTML += '<tr><td>' + log.feedbackDate + '</td><td><b>' + esc(log.champ) + '</b></td><td>#' + esc(log.orderId) + '</td><td>' + esc(log.actionType) + '</td></tr>';
     });
 
-    // جدول سجل الحضور (يُضاف مرة واحدة فقط)
-    if (!document.getElementById('dashLoginBody')) {
-      document.querySelector('.dash-box').insertAdjacentHTML('beforeend',
-        '<h4 style="font-weight:800; font-size:13px; margin-top:20px;">📸 سجل حضور الموظفين</h4>' +
-        '<div style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">' +
-          '<table style="width:100%; border-collapse:collapse; font-size:11px;">' +
-            '<thead><tr style="background:var(--bg);"><th>الوقت</th><th>الموظف</th><th>البريد</th><th>الصورة</th></tr></thead>' +
-            '<tbody id="dashLoginBody"></tbody>' +
-          '</table>' +
-        '</div>'
-      );
-    }
-    var loginBody = document.getElementById('dashLoginBody'); loginBody.innerHTML = '';
-    (data.loginLogs || []).forEach(function(l) {
-      var photoHtml = (l.photo && l.photo.indexOf('data:image') === 0)
-        ? '<img src="' + l.photo + '" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid var(--primary);">'
-        : '—';
-      loginBody.innerHTML += '<tr><td>' + l.timestamp + '</td><td><b>' + esc(l.name) + '</b></td><td>' + esc(l.email) + '</td><td>' + photoHtml + '</td></tr>';
+    // بناء فلتر الموظفين في سجل الحضور
+    _allLoginLogs = data.loginLogs || [];
+    var empSel = document.getElementById('attFilterEmp');
+    var seen = {};
+    empSel.innerHTML = '<option value="">— كل الموظفين —</option>';
+    _allLoginLogs.forEach(function(l) {
+      if (l.name && !seen[l.name]) {
+        seen[l.name] = true;
+        var o = document.createElement('option'); o.value = l.name; o.textContent = l.name; empSel.appendChild(o);
+      }
     });
+
+    renderAttendance();
+  });
+}
+
+function renderAttendance() {
+  var filterDate = document.getElementById('attFilterDate').value;   // yyyy-mm-dd
+  var filterEmp  = document.getElementById('attFilterEmp').value;
+  var grid       = document.getElementById('attGrid');
+  grid.innerHTML = '';
+
+  var filtered = _allLoginLogs.filter(function(l) {
+    if (filterEmp  && l.name !== filterEmp) return false;
+    if (filterDate && l.loginTime.indexOf(filterDate) !== 0) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-2);font-size:13px;">لا توجد سجلات بهذه الفلاتر</div>';
+    return;
+  }
+
+  filtered.forEach(function(l) {
+    var photoHtml = (l.photo && l.photo.indexOf('data:image') === 0)
+      ? '<img src="' + l.photo + '" class="att-photo">'
+      : '<div class="att-photo-ph">👤</div>';
+
+    var locHtml = l.mapsUrl
+      ? '<a href="' + esc(l.mapsUrl) + '" target="_blank" style="color:var(--primary);font-weight:800;text-decoration:none;">📍 عرض الموقع</a>' +
+        (l.accuracy ? ' <span style="font-size:10px;color:var(--text-2);">(±' + l.accuracy + 'm)</span>' : '')
+      : '<span style="color:var(--text-2);">📍 غير مسجّل</span>';
+
+    var total = (l.completed || 0) + (l.pending || 0);
+
+    var card = document.createElement('div');
+    card.className = 'att-card';
+    card.innerHTML =
+      photoHtml +
+      '<div class="att-info">' +
+        '<div class="att-name">' + esc(l.name) + '</div>' +
+        '<div class="att-row">⏰ وصل: <strong>' + (l.loginTime || '—') + '</strong></div>' +
+        '<div class="att-row">📸 سيلفي: <strong>' + (l.selfieTime || '—') + '</strong></div>' +
+        '<div class="att-row">' + locHtml + '</div>' +
+        '<div class="att-row">📦 منتجات: <span class="att-badge">' + (l.completed || 0) + ' / ' + total + '</span></div>' +
+      '</div>';
+    grid.appendChild(card);
   });
 }
 
@@ -858,8 +993,69 @@ function submitBatchTasks() {
   setLoaderText('جاري إرسال الفيدباك...');
   callAPI('submitBatchFeedback', { items: payload }, function(err, res) {
     hideLoader();
-    if (res && res.status === 'success') { toast('🎉 تم إرسال جميع الفيدباك بنجاح!', 'ok'); loadData(); }
-    else { toast('حدث خطأ أثناء الإرسال', 'err'); }
+    if (res && res.status === 'success') {
+      toast('🎉 تم إرسال جميع الفيدباك بنجاح!', 'ok');
+      if (!S.isOwner) showSummaryForm(payload.length);
+      else loadData();
+    } else { toast('حدث خطأ أثناء الإرسال', 'err'); }
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SUMMARY FORM – يظهر بعد إرسال الفيدباك للموظفين
+// ════════════════════════════════════════════════════════════════════════════
+function showSummaryForm(count) {
+  var html =
+    '<div class="sf-overlay" id="sfOverlay">' +
+      '<div class="sf-box">' +
+        '<div style="text-align:center; margin-bottom:20px;">' +
+          '<div style="font-size:40px;">📋</div>' +
+          '<h3 style="font-weight:900; font-size:16px; margin:8px 0 4px;">ملخص زيارة الفرع</h3>' +
+          '<p style="font-size:11px; color:var(--text-2);">تم إرسال <strong>' + count + '</strong> منتج · أكمل بيانات الزيارة</p>' +
+        '</div>' +
+        '<div class="sf-field"><label class="sf-label">Menu Management Up-to-dateness</label>' +
+          '<select id="sf_menu" class="sf-input"><option value="Yes ✅">Yes ✅</option><option value="No ❌">No ❌</option><option value="Partial ⚠️">Partial ⚠️</option></select></div>' +
+        '<div class="sf-field"><label class="sf-label">Visit Objective</label>' +
+          '<textarea id="sf_visit" class="sf-input" rows="2" placeholder="هدف الزيارة..."></textarea></div>' +
+        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' +
+          '<div class="sf-field"><label class="sf-label">Employees Per Shift</label>' +
+            '<input type="number" id="sf_emp" class="sf-input" placeholder="0" min="0"></div>' +
+          '<div class="sf-field"><label class="sf-label">Riders Per Shift</label>' +
+            '<input type="number" id="sf_rider" class="sf-input" placeholder="0" min="0"></div>' +
+        '</div>' +
+        '<div class="sf-field"><label class="sf-label">Actions Plan</label>' +
+          '<textarea id="sf_actions" class="sf-input" rows="2" placeholder="خطة الإجراءات..."></textarea></div>' +
+        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' +
+          '<div class="sf-field"><label class="sf-label">Order ID</label>' +
+            '<input type="text" id="sf_order" class="sf-input" placeholder="رقم الطلب"></div>' +
+          '<div class="sf-field"><label class="sf-label">Vendor Issue</label>' +
+            '<input type="text" id="sf_vendor" class="sf-input" placeholder="مشكلة الفيندور"></div>' +
+        '</div>' +
+        '<button onclick="submitSummaryForm()" style="width:100%; padding:13px; background:var(--primary); color:white; border:none; border-radius:var(--r-sm); font-family:Cairo; font-size:14px; font-weight:900; cursor:pointer; margin-top:6px;">إرسال الملخص وإنهاء الجلسة ✓</button>' +
+      '</div>' +
+    '</div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function submitSummaryForm() {
+  var data = {
+    name:           S.user,
+    email:          S.userEmail,
+    menuManagement: document.getElementById('sf_menu').value,
+    visitObjective: document.getElementById('sf_visit').value.trim(),
+    empPerShift:    document.getElementById('sf_emp').value,
+    riderPerShift:  document.getElementById('sf_rider').value,
+    actionsplan:    document.getElementById('sf_actions').value.trim(),
+    orderId:        document.getElementById('sf_order').value.trim(),
+    vendorIssue:    document.getElementById('sf_vendor').value.trim()
+  };
+  showLoader(); setLoaderText('جاري حفظ ملخص الزيارة...');
+  callAPI('submitBranchSummary', data, function() {
+    hideLoader();
+    var ov = document.getElementById('sfOverlay');
+    if (ov) ov.remove();
+    toast('تم حفظ ملخص الزيارة بنجاح ✅', 'ok');
+    loadData();
   });
 }
 
