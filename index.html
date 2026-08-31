@@ -553,13 +553,13 @@ function handleSelfieSelect(input) {
     var img = new Image();
     img.onload = function() {
       // ضغط الصورة لـ 300×300 بحد أقصى عشان تتخزن في Google Sheets بدون مشاكل
-      var MAX = 300;
+      var MAX = 90;
       var ratio = Math.min(MAX / img.width, MAX / img.height, 1);
       var canvas = document.createElement('canvas');
       canvas.width  = Math.round(img.width  * ratio);
       canvas.height = Math.round(img.height * ratio);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      capturedSelfieData = canvas.toDataURL('image/jpeg', 0.72);
+      capturedSelfieData = canvas.toDataURL('image/jpeg', 0.38);
 
       var preview = document.getElementById('selfiePreview');
       if (preview) preview.innerHTML = '<img src="' + capturedSelfieData + '" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">';
@@ -669,14 +669,20 @@ function renderAttendance() {
   }
 
   filtered.forEach(function(l) {
-    var photoHtml = (l.photo && l.photo.indexOf('data:image') === 0)
-      ? '<img src="' + l.photo + '" class="att-photo">'
+    // صورة السيلفي – Drive link أو placeholder
+    var photoHtml = l.photo
+      ? '<a href="' + esc(l.photo) + '" target="_blank" title="اضغط لعرض الصورة كاملة">' +
+          '<img src="' + esc(l.photo) + '" class="att-photo" ' +
+          'onerror="this.parentElement.outerHTML=\'<div class=\\\"att-photo-ph\\\">👤</div>\'">' +
+        '</a>'
       : '<div class="att-photo-ph">👤</div>';
 
+    // رابط الموقع
     var locHtml = l.mapsUrl
-      ? '<a href="' + esc(l.mapsUrl) + '" target="_blank" style="color:var(--primary);font-weight:800;text-decoration:none;">📍 عرض الموقع</a>' +
-        (l.accuracy ? ' <span style="font-size:10px;color:var(--text-2);">(±' + l.accuracy + 'm)</span>' : '')
-      : '<span style="color:var(--text-2);">📍 غير مسجّل</span>';
+      ? '<a href="' + esc(l.mapsUrl) + '" target="_blank" ' +
+          'style="color:var(--primary);font-weight:800;text-decoration:none;">📍 عرض الموقع</a>' +
+          (l.accuracy ? ' <span style="font-size:10px;color:var(--text-2);">(±' + esc(l.accuracy) + 'm)</span>' : '')
+      : '<span style="color:#94A3B8;">📍 موقع غير مسجّل</span>';
 
     var total = (l.completed || 0) + (l.pending || 0);
 
@@ -686,10 +692,10 @@ function renderAttendance() {
       photoHtml +
       '<div class="att-info">' +
         '<div class="att-name">' + esc(l.name) + '</div>' +
-        '<div class="att-row">⏰ وصل: <strong>' + (l.loginTime || '—') + '</strong></div>' +
-        '<div class="att-row">📸 سيلفي: <strong>' + (l.selfieTime || '—') + '</strong></div>' +
+        '<div class="att-row">⏰ <strong>وصل:</strong> ' + esc(l.loginTime || '—') + '</div>' +
+        '<div class="att-row">📸 <strong>سيلفي:</strong> ' + esc(l.selfieTime || '—') + '</div>' +
         '<div class="att-row">' + locHtml + '</div>' +
-        '<div class="att-row">📦 منتجات: <span class="att-badge">' + (l.completed || 0) + ' / ' + total + '</span></div>' +
+        '<div class="att-row">📦 منتجات مكتملة: <span class="att-badge">' + (l.completed || 0) + ' / ' + total + '</span></div>' +
       '</div>';
     grid.appendChild(card);
   });
