@@ -406,12 +406,14 @@ function callAPI(action, payload, callback) {
 // ════════════════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
   var cached = readCache();
-  if (cached) {
+  // المديرون فقط يستفيدون من الكاش – الموظفون دائماً يسجلون دخول جديد مع سيلفي وموقع
+  if (cached && cached.isOwner) {
     S.user = cached.name; S.userEmail = cached.email;
-    S.isOwner = cached.isOwner; S.allTeamNames = cached.allNames || [];
+    S.isOwner = true; S.allTeamNames = cached.allNames || [];
     populateAdminDropdown();
     loadData();
   } else {
+    clearCache();
     hideLoader();
     show('loginScreen');
   }
