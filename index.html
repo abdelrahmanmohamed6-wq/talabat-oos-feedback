@@ -133,10 +133,12 @@
     .toast.inf { background: var(--primary); }
 
     @media (min-width: 681px) {
-      .cb { display: grid; grid-template-columns: 30% 40% 30%; direction: ltr; }
-      .cb-info { order: 3; }
+      .cb { display: grid; grid-template-columns: 28% 34% 38%; direction: ltr; gap: 0; }
+      .cb-info { order: 3; padding: 12px 14px 12px 8px; min-width: 0; word-break: break-word; overflow-wrap: break-word; }
       .cb-img-col { order: 2; border-radius: 0; }
-      .cb-actions { order: 1; }
+      .cb-actions { order: 1; min-width: 0; }
+      .cb-item-name { white-space: normal; word-break: break-word; }
+      .cb-sku { white-space: normal; }
     }
   </style>
 </head>
