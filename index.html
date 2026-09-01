@@ -178,10 +178,6 @@
     <h1 style="font-size:22px; font-weight:900; margin-bottom:4px;">بوابة الفيدباك</h1>
     <p style="font-size:12px; color:var(--text-2); margin-bottom:28px;">Talabat OOS · تسجيل الدخول بحساب Google</p>
 
-    <!--
-      data-client_id: استبدل YOUR_GOOGLE_CLIENT_ID بـ Client ID من Google Cloud Console
-      data-auto_select="true": يحاول تسجيل الدخول تلقائياً إذا كان هناك حساب واحد فقط مسجّل
-    -->
     <div id="g_id_onload"
          data-client_id="397053555500-0kavau822uibedcefps41h4ibg7iueu7.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
@@ -406,7 +402,6 @@ function callAPI(action, payload, callback) {
 // ════════════════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
   var cached = readCache();
-  // المديرون فقط يستفيدون من الكاش – الموظفون دائماً يسجلون دخول جديد مع سيلفي وموقع
   if (cached && cached.isOwner) {
     S.user = cached.name; S.userEmail = cached.email;
     S.isOwner = true; S.allTeamNames = cached.allNames || [];
@@ -425,7 +420,6 @@ document.addEventListener('DOMContentLoaded', function() {
 function handleCredentialResponse(response) {
   S.currentToken = response.credential;
 
-  // فك تشفير JWT لاستخراج الإيميل بدون إرساله لأي خادم خارجي
   var tokenData = parseJwt(response.credential);
   if (!tokenData || !tokenData.email) {
     showAuthError('تعذر قراءة بيانات الحساب من Google. حاول مرة أخرى.');
@@ -444,7 +438,6 @@ function handleCredentialResponse(response) {
     }
 
     if (!res.isAuthorized) {
-      // حظر أحمر واضح للمستخدم غير المصرح له
       showAuthError('🚫 ' + (res.message || 'هذا الحساب غير مصرح له بالدخول نهائياً.'));
       return;
     }
@@ -475,7 +468,6 @@ function requestLocationThenSelfie() {
     return;
   }
 
-  // شاشة انتظار الموقع
   var overlay = document.createElement('div');
   overlay.id = 'locWaiting';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(255,98,0,0.96);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;padding:24px;';
@@ -497,7 +489,6 @@ function requestLocationThenSelfie() {
         mapsUrl:  'https://www.google.com/maps?q=' + lat + ',' + lng,
         areaName: ''
       };
-      // Reverse geocoding لاسم المنطقة – يشتغل في الخلفية بدون تأخير
       if (window.fetch) {
         fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=14&accept-language=ar')
           .then(function(r) { return r.json(); })
@@ -512,7 +503,6 @@ function requestLocationThenSelfie() {
     function() {
       var el = document.getElementById('locWaiting');
       if (el) el.remove();
-      // شاشة حظر كاملة – لا يمكن المتابعة بدون موقع
       var block = document.createElement('div');
       block.id = 'locBlocked';
       block.style.cssText = 'position:fixed;inset:0;background:#1E293B;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;padding:24px;';
@@ -558,20 +548,20 @@ function showSelfieModal() {
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
+// 🔧 [تعديل] ضغط الصورة بشكل مناسب وموثوق لتُرسل بالـ JSONP دون قطع
 function handleSelfieSelect(input) {
   var file = input.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
     var img = new Image();
     img.onload = function() {
-      // ضغط الصورة لـ 300×300 بحد أقصى عشان تتخزن في Google Sheets بدون مشاكل
-      var MAX = 90;
+      var MAX = 200;
       var ratio = Math.min(MAX / img.width, MAX / img.height, 1);
       var canvas = document.createElement('canvas');
       canvas.width  = Math.round(img.width  * ratio);
       canvas.height = Math.round(img.height * ratio);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      capturedSelfieData = canvas.toDataURL('image/jpeg', 0.38);
+      capturedSelfieData = canvas.toDataURL('image/jpeg', 0.4);
 
       var preview = document.getElementById('selfiePreview');
       if (preview) preview.innerHTML = '<img src="' + capturedSelfieData + '" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">';
@@ -584,16 +574,14 @@ function handleSelfieSelect(input) {
 }
 
 function confirmLoginWithPhoto() {
-  // منع الضغط المزدوج
   var btn = document.getElementById('btnConfirmLogin');
   if (btn) { if (btn._submitting) return; btn._submitting = true; btn.disabled = true; }
 
   showLoader();
   setLoaderText('جاري تسجيل الحضور...');
   var loc = S.location || {};
-  var photoSnapshot = capturedSelfieData; // احتفظ بالصورة قبل ما تتمسح
+  var photoSnapshot = capturedSelfieData;
 
-  // Call 1: سجّل الحضور (بدون صورة عشان الـ URL ما يتعملش truncation)
   callAPI('recordUserLogin', {
     name:      S.user,
     email:     S.userEmail,
@@ -608,7 +596,6 @@ function confirmLoginWithPhoto() {
     var modal = document.getElementById('selfieModal');
     if (modal) modal.remove();
 
-    // Call 2: ارفع الصورة (synchronous عشان نشوف النتيجة)
     if (!err && res && res.rowNum && photoSnapshot) {
       var rawB64  = photoSnapshot.split(',')[1] || '';
       var safeB64 = rawB64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
@@ -672,7 +659,6 @@ function openAdminDashboardModal() {
       auditBody.innerHTML += '<tr><td>' + log.feedbackDate + '</td><td><b>' + esc(log.champ) + '</b></td><td>#' + esc(log.orderId) + '</td><td>' + esc(log.actionType) + '</td></tr>';
     });
 
-    // بناء فلتر الموظفين في سجل الحضور
     _allLoginLogs = data.loginLogs || [];
     var empSel = document.getElementById('attFilterEmp');
     var seen = {};
@@ -689,7 +675,7 @@ function openAdminDashboardModal() {
 }
 
 function renderAttendance() {
-  var filterDate = document.getElementById('attFilterDate').value;   // yyyy-mm-dd
+  var filterDate = document.getElementById('attFilterDate').value;
   var filterEmp  = document.getElementById('attFilterEmp').value;
   var grid       = document.getElementById('attGrid');
   grid.innerHTML = '';
@@ -706,12 +692,10 @@ function renderAttendance() {
   }
 
   filtered.forEach(function(l) {
-    // صورة السيلفي – أيقونة 📸 قابلة للضغط أو placeholder
     var photoHtml = l.photo
       ? '<a href="' + esc(l.photo) + '" target="_blank" title="عرض صورة الحضور" class="att-photo-ph" style="background:var(--primary-bg);border:2.5px solid var(--primary);text-decoration:none;font-size:26px;display:flex;align-items:center;justify-content:center;">📸</a>'
       : '<div class="att-photo-ph">👤</div>';
 
-    // رابط الموقع مع اسم المنطقة
     var locLabel = l.areaName ? esc(l.areaName) : 'عرض الموقع';
     var locHtml = l.mapsUrl
       ? '<a href="' + esc(l.mapsUrl) + '" target="_blank" ' +
@@ -786,7 +770,7 @@ function _onDataLoaded(res) {
 function refreshData() { loadData(); }
 
 // ════════════════════════════════════════════════════════════════════════════
-// CASCADING FILTERS – يُعيد بناء القوائم بناءً على الاختيار الحالي
+// CASCADING FILTERS
 // ════════════════════════════════════════════════════════════════════════════
 function updateCascadingFilters() {
   var selV = document.getElementById('fVendor').value;
