@@ -489,12 +489,24 @@ function requestLocationThenSelfie() {
     function(pos) {
       var el = document.getElementById('locWaiting');
       if (el) el.remove();
+      var lat = pos.coords.latitude, lng = pos.coords.longitude;
       S.location = {
-        lat:      pos.coords.latitude,
-        lng:      pos.coords.longitude,
+        lat:      lat,
+        lng:      lng,
         accuracy: Math.round(pos.coords.accuracy),
-        mapsUrl:  'https://www.google.com/maps?q=' + pos.coords.latitude + ',' + pos.coords.longitude
+        mapsUrl:  'https://www.google.com/maps?q=' + lat + ',' + lng,
+        areaName: ''
       };
+      // Reverse geocoding لاسم المنطقة – يشتغل في الخلفية بدون تأخير
+      if (window.fetch) {
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=14&accept-language=ar')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var a = d.address || {};
+            S.location.areaName = a.suburb || a.neighbourhood || a.quarter || a.city_district || a.city || '';
+          })
+          .catch(function() {});
+      }
       showSelfieModal();
     },
     function() {
@@ -583,7 +595,8 @@ function confirmLoginWithPhoto() {
     lat:       loc.lat      || '',
     lng:       loc.lng      || '',
     accuracy:  loc.accuracy || '',
-    mapsUrl:   loc.mapsUrl  || ''
+    mapsUrl:   loc.mapsUrl  || '',
+    areaName:  loc.areaName || ''
   }, function() {
     capturedSelfieData = '';
     var modal = document.getElementById('selfieModal');
@@ -669,18 +682,16 @@ function renderAttendance() {
   }
 
   filtered.forEach(function(l) {
-    // صورة السيلفي – Drive link أو placeholder
+    // صورة السيلفي – أيقونة 📸 قابلة للضغط أو placeholder
     var photoHtml = l.photo
-      ? '<a href="' + esc(l.photo) + '" target="_blank" title="اضغط لعرض الصورة كاملة">' +
-          '<img src="' + esc(l.photo) + '" class="att-photo" ' +
-          'onerror="this.parentElement.outerHTML=\'<div class=\\\"att-photo-ph\\\">👤</div>\'">' +
-        '</a>'
+      ? '<a href="' + esc(l.photo) + '" target="_blank" title="عرض صورة الحضور" class="att-photo-ph" style="background:var(--primary-bg);border:2.5px solid var(--primary);text-decoration:none;font-size:26px;display:flex;align-items:center;justify-content:center;">📸</a>'
       : '<div class="att-photo-ph">👤</div>';
 
-    // رابط الموقع
+    // رابط الموقع مع اسم المنطقة
+    var locLabel = l.areaName ? esc(l.areaName) : 'عرض الموقع';
     var locHtml = l.mapsUrl
       ? '<a href="' + esc(l.mapsUrl) + '" target="_blank" ' +
-          'style="color:var(--primary);font-weight:800;text-decoration:none;">📍 عرض الموقع</a>' +
+          'style="color:var(--primary);font-weight:800;text-decoration:none;">📍 ' + locLabel + '</a>' +
           (l.accuracy ? ' <span style="font-size:10px;color:var(--text-2);">(±' + esc(l.accuracy) + 'm)</span>' : '')
       : '<span style="color:#94A3B8;">📍 موقع غير مسجّل</span>';
 
@@ -693,7 +704,8 @@ function renderAttendance() {
       '<div class="att-info">' +
         '<div class="att-name">' + esc(l.name) + '</div>' +
         '<div class="att-row">⏰ <strong>وصل:</strong> ' + esc(l.loginTime || '—') + '</div>' +
-        '<div class="att-row">📸 <strong>سيلفي:</strong> ' + esc(l.selfieTime || '—') + '</div>' +
+        '<div class="att-row">📸 <strong>سيلفي:</strong> ' + esc(l.selfieTime || '—') +
+          (l.photo ? ' · <a href="' + esc(l.photo) + '" target="_blank" style="color:var(--primary);font-size:10px;font-weight:800;">عرض</a>' : '') + '</div>' +
         '<div class="att-row">' + locHtml + '</div>' +
         '<div class="att-row">📦 منتجات مكتملة: <span class="att-badge">' + (l.completed || 0) + ' / ' + total + '</span></div>' +
       '</div>';
