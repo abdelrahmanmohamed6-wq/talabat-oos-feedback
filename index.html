@@ -585,22 +585,34 @@ function handleSelfieSelect(input) {
 
 function confirmLoginWithPhoto() {
   showLoader();
-  setLoaderText('جاري تسجيل الحضور وتحميل البيانات...');
+  setLoaderText('جاري تسجيل الحضور...');
   var loc = S.location || {};
+  var photoSnapshot = capturedSelfieData; // احتفظ بالصورة قبل ما تتمسح
+
+  // Call 1: سجّل الحضور (بدون صورة عشان الـ URL ما يتعملش truncation)
   callAPI('recordUserLogin', {
     name:      S.user,
     email:     S.userEmail,
-    photo:     capturedSelfieData,
     loginTime: S.loginTime || new Date().toISOString(),
     lat:       loc.lat      || '',
     lng:       loc.lng      || '',
     accuracy:  loc.accuracy || '',
     mapsUrl:   loc.mapsUrl  || '',
     areaName:  loc.areaName || ''
-  }, function() {
+  }, function(err, res) {
     capturedSelfieData = '';
     var modal = document.getElementById('selfieModal');
     if (modal) modal.remove();
+
+    // Call 2: ارفع الصورة في الخلفية (بدون انتظار)
+    if (!err && res && res.rowNum && photoSnapshot) {
+      callAPI('uploadSelfiePhoto', {
+        name:   S.user,
+        photo:  photoSnapshot,
+        rowNum: res.rowNum
+      }, function() {}); // fire-and-forget
+    }
+
     populateAdminDropdown();
     loadData();
   });
