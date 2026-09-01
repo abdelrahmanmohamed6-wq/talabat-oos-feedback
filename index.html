@@ -6,7 +6,6 @@
   <meta name="referrer" content="no-referrer">
   <title>Talabat OOS – بوابة الفيدباك</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -132,18 +131,16 @@
     .toast.err { background: var(--error); }
     .toast.inf { background: var(--primary); }
 
-    /* ── Attendance Cards ── */
     .att-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
     .att-filter-input { flex:1; min-width:130px; padding:7px 10px; border:1.5px solid var(--border); border-radius:var(--r-sm); font-family:'Cairo'; font-size:12px; }
     .att-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
     .att-card { background:var(--bg); border-radius:var(--r); padding:14px; display:flex; gap:12px; align-items:flex-start; border:1px solid var(--border); }
-    .att-photo { width:56px; height:56px; border-radius:50%; object-fit:cover; border:2.5px solid var(--primary); flex-shrink:0; }
-    .att-photo-ph { width:56px; height:56px; border-radius:50%; background:var(--primary-bg); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+    .att-photo-ph { width:56px; height:56px; border-radius:50%; background:var(--primary-bg); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; overflow:hidden; }
     .att-info { flex:1; min-width:0; }
     .att-name { font-weight:900; font-size:13px; margin-bottom:4px; }
     .att-row { font-size:11px; color:var(--text-2); margin-bottom:2px; }
     .att-badge { display:inline-block; background:var(--success-bg); color:var(--success); font-size:10px; font-weight:800; padding:2px 7px; border-radius:var(--r-full); margin-left:4px; }
-    /* ── Summary Form ── */
+    
     .sf-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px; }
     .sf-box { background:white; border-radius:var(--r-lg); padding:24px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; }
     .sf-field { margin-bottom:14px; }
@@ -169,9 +166,6 @@
   <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════
-     شاشة تسجيل الدخول – Google OAuth فقط، بدون إدخال يدوي
-     ════════════════════════════════════════════════════════ -->
 <div id="loginScreen">
   <div class="login-card">
     <div style="font-size:44px; margin-bottom:12px;">💉</div>
@@ -201,9 +195,6 @@
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════
-     شاشة التطبيق الرئيسية
-     ════════════════════════════════════════════════════════ -->
 <div id="appScreen">
   <header class="app-header">
     <div class="header-row">
@@ -259,7 +250,6 @@
   </div>
 </div>
 
-<!-- Admin Dashboard Modal -->
 <div id="adminDashboardModal">
   <div class="dash-box">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:16px;">
@@ -267,7 +257,6 @@
       <button onclick="closeAdminDashboardModal()" style="border:none; background:var(--bg); padding:5px 10px; border-radius:var(--r-sm); font-weight:800; cursor:pointer;">✕</button>
     </div>
 
-    <!-- KPIs -->
     <div class="dash-grid">
       <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--primary);"  id="dashKpiTotal">0</div><div style="font-size:10px;color:var(--text-2);">إجمالي</div></div>
       <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--warning);" id="dashKpiPending">0</div><div style="font-size:10px;color:var(--text-2);">معلّق</div></div>
@@ -275,14 +264,12 @@
       <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--info);"    id="dashKpiRate">0%</div><div style="font-size:10px;color:var(--text-2);">الإنجاز</div></div>
     </div>
 
-    <!-- Team Performance -->
     <h4 style="font-weight:800;font-size:13px;margin-top:16px;">👥 أداء الفريق</h4>
     <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;">
       <thead><tr style="background:var(--bg);"><th>الموظف</th><th>معلّق</th><th>مكتمل</th><th>الإنجاز</th></tr></thead>
       <tbody id="dashTeamBody"></tbody>
     </table>
 
-    <!-- Last Actions -->
     <h4 style="font-weight:800;font-size:13px;margin-top:20px;">🕒 آخر الإجراءات</h4>
     <div style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);margin-top:6px;">
       <table style="width:100%;border-collapse:collapse;font-size:11px;">
@@ -291,7 +278,6 @@
       </table>
     </div>
 
-    <!-- Attendance Section -->
     <h4 style="font-weight:800;font-size:13px;margin-top:24px;padding-top:16px;border-top:2px solid var(--border);">📸 سجل الحضور والموقع</h4>
     <div class="att-filters" style="margin-top:10px;">
       <input type="date" id="attFilterDate" class="att-filter-input" onchange="renderAttendance()" placeholder="اختر التاريخ">
@@ -307,14 +293,8 @@
 <div id="toastWrap"></div>
 
 <script>
-// ════════════════════════════════════════════════════════════════════════════
-// CONFIG – ضع رابط النشر من Apps Script هنا
-// ════════════════════════════════════════════════════════════════════════════
 var API_URL = "https://script.google.com/macros/s/AKfycbxjabytSWsUXElsvvHwPyhW8d3m312le2B0XOYzp7Zr5LQYeEUqL0OOMkiMmcJJqmsR/exec";
 
-// ════════════════════════════════════════════════════════════════════════════
-// STATE
-// ════════════════════════════════════════════════════════════════════════════
 var S = {
   user: null, userEmail: null, isOwner: false,
   ownerViewingUser: null, currentToken: null,
@@ -322,9 +302,6 @@ var S = {
   location: null, loginTime: null
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// SESSION CACHE – 8 ساعات
-// ════════════════════════════════════════════════════════════════════════════
 var _SKEY = 'oos_sess_v2';
 var _STTL = 8 * 60 * 60 * 1000;
 
@@ -345,9 +322,6 @@ function writeCache(sess) {
 }
 function clearCache() { try { localStorage.removeItem(_SKEY); } catch(e) {} }
 
-// ════════════════════════════════════════════════════════════════════════════
-// JWT DECODER – يسحب بيانات المستخدم من Google token بدون مكتبة خارجية
-// ════════════════════════════════════════════════════════════════════════════
 function parseJwt(token) {
   try {
     var base64Url = token.split('.')[1];
@@ -361,9 +335,6 @@ function parseJwt(token) {
   } catch(e) { return null; }
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// JSONP – الطريقة الوحيدة للتواصل مع Apps Script من GitHub Pages (بدون CORS)
-// ════════════════════════════════════════════════════════════════════════════
 function callAPI(action, payload, callback) {
   var cbName = 'jsonp_' + Math.round(1e6 * Math.random());
 
@@ -397,9 +368,6 @@ function callAPI(action, payload, callback) {
   document.body.appendChild(script);
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// BOOT – تحقق من الكاش أولاً، لو موجود ابدأ مباشرة، لو لا أظهر Google OAuth
-// ════════════════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
   var cached = readCache();
   if (cached && cached.isOwner) {
@@ -414,9 +382,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// ════════════════════════════════════════════════════════════════════════════
-// GOOGLE OAUTH CALLBACK – بيتنادى أوتوماتيكياً بعد اختيار الحساب
-// ════════════════════════════════════════════════════════════════════════════
 function handleCredentialResponse(response) {
   S.currentToken = response.credential;
 
@@ -459,9 +424,6 @@ function handleCredentialResponse(response) {
   });
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// LOCATION – إجباري للموظفين قبل السيلفي
-// ════════════════════════════════════════════════════════════════════════════
 function requestLocationThenSelfie() {
   if (!navigator.geolocation) {
     showAuthError('متصفحك لا يدعم تحديد الموقع. استخدم Chrome أو Safari.');
@@ -526,9 +488,6 @@ function clearAuthError() {
   if (el) { el.style.display = 'none'; el.textContent = ''; }
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// SELFIE MODAL – للموظفين فقط، إجبارية قبل رؤية البيانات
-// ════════════════════════════════════════════════════════════════════════════
 var capturedSelfieData = '';
 
 function showSelfieModal() {
@@ -548,20 +507,19 @@ function showSelfieModal() {
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
-// 🔧 [تعديل] ضغط الصورة بشكل مناسب وموثوق لتُرسل بالـ JSONP دون قطع
 function handleSelfieSelect(input) {
   var file = input.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
     var img = new Image();
     img.onload = function() {
-      var MAX = 200;
+      var MAX = 180;
       var ratio = Math.min(MAX / img.width, MAX / img.height, 1);
       var canvas = document.createElement('canvas');
       canvas.width  = Math.round(img.width  * ratio);
       canvas.height = Math.round(img.height * ratio);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      capturedSelfieData = canvas.toDataURL('image/jpeg', 0.4);
+      capturedSelfieData = canvas.toDataURL('image/jpeg', 0.35);
 
       var preview = document.getElementById('selfiePreview');
       if (preview) preview.innerHTML = '<img src="' + capturedSelfieData + '" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">';
@@ -578,9 +536,8 @@ function confirmLoginWithPhoto() {
   if (btn) { if (btn._submitting) return; btn._submitting = true; btn.disabled = true; }
 
   showLoader();
-  setLoaderText('جاري تسجيل الحضور...');
+  setLoaderText('جاري تسجيل الحضور وترحيل البيانات...');
   var loc = S.location || {};
-  var photoSnapshot = capturedSelfieData;
 
   callAPI('recordUserLogin', {
     name:      S.user,
@@ -590,36 +547,23 @@ function confirmLoginWithPhoto() {
     lng:       loc.lng      || '',
     accuracy:  loc.accuracy || '',
     mapsUrl:   loc.mapsUrl  || '',
-    areaName:  loc.areaName || ''
+    areaName:  loc.areaName || '',
+    photo:     capturedSelfieData
   }, function(err, res) {
     capturedSelfieData = '';
     var modal = document.getElementById('selfieModal');
     if (modal) modal.remove();
 
-    if (!err && res && res.rowNum && photoSnapshot) {
-      var rawB64  = photoSnapshot.split(',')[1] || '';
-      var safeB64 = rawB64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-      setLoaderText('جاري رفع صورة الحضور...');
-      callAPI('uploadSelfiePhoto', {
-        name:   S.user,
-        photo:  safeB64,
-        rowNum: res.rowNum
-      }, function(e2, r2) {
-        if (r2 && r2.photoUrl) toast('تم رفع الصورة بنجاح ✅', 'ok');
-        else toast('تعذر رفع الصورة – rowNum=' + res.rowNum, 'err');
-        populateAdminDropdown();
-        loadData();
-      });
+    if (!err && res && res.status === 'success') {
+      toast('تم تسجيل الحضور والصورة بنجاح ✅', 'ok');
     } else {
-      populateAdminDropdown();
-      loadData();
+      toast('تم الحضور بنجاح', 'inf');
     }
+    populateAdminDropdown();
+    loadData();
   });
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// ADMIN CONTROLS
-// ════════════════════════════════════════════════════════════════════════════
 function populateAdminDropdown() {
   var sel = document.getElementById('adminUserSelect');
   if (!sel) return;
@@ -692,14 +636,13 @@ function renderAttendance() {
   }
 
   filtered.forEach(function(l) {
-    var photoHtml = l.photo
-      ? '<a href="' + esc(l.photo) + '" target="_blank" title="عرض صورة الحضور" class="att-photo-ph" style="background:var(--primary-bg);border:2.5px solid var(--primary);text-decoration:none;font-size:26px;display:flex;align-items:center;justify-content:center;">📸</a>'
+    var photoHtml = (l.photo && l.photo.indexOf('data:image') === 0)
+      ? '<img src="' + esc(l.photo) + '" class="att-photo-ph" style="border:2.5px solid var(--primary);object-fit:cover;">'
       : '<div class="att-photo-ph">👤</div>';
 
     var locLabel = l.areaName ? esc(l.areaName) : 'عرض الموقع';
     var locHtml = l.mapsUrl
-      ? '<a href="' + esc(l.mapsUrl) + '" target="_blank" ' +
-          'style="color:var(--primary);font-weight:800;text-decoration:none;">📍 ' + locLabel + '</a>' +
+      ? '<a href="' + esc(l.mapsUrl) + '" target="_blank" style="color:var(--primary);font-weight:800;text-decoration:none;">📍 ' + locLabel + '</a>' +
           (l.accuracy ? ' <span style="font-size:10px;color:var(--text-2);">(±' + esc(l.accuracy) + 'm)</span>' : '')
       : '<span style="color:#94A3B8;">📍 موقع غير مسجّل</span>';
 
@@ -712,8 +655,7 @@ function renderAttendance() {
       '<div class="att-info">' +
         '<div class="att-name">' + esc(l.name) + '</div>' +
         '<div class="att-row">⏰ <strong>وصل:</strong> ' + esc(l.loginTime || '—') + '</div>' +
-        '<div class="att-row">📸 <strong>سيلفي:</strong> ' + esc(l.selfieTime || '—') +
-          (l.photo ? ' · <a href="' + esc(l.photo) + '" target="_blank" style="color:var(--primary);font-size:10px;font-weight:800;">عرض</a>' : '') + '</div>' +
+        '<div class="att-row">📸 <strong>سيلفي:</strong> ' + esc(l.selfieTime || '—') + '</div>' +
         '<div class="att-row">' + locHtml + '</div>' +
         '<div class="att-row">📦 منتجات مكتملة: <span class="att-badge">' + (l.completed || 0) + ' / ' + total + '</span></div>' +
       '</div>';
@@ -725,9 +667,6 @@ function closeAdminDashboardModal() {
   document.getElementById('adminDashboardModal').classList.remove('on');
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// DATA LOADING
-// ════════════════════════════════════════════════════════════════════════════
 function loadData() {
   showLoader();
   setLoaderText('جاري قراءة البيانات...');
@@ -769,9 +708,6 @@ function _onDataLoaded(res) {
 
 function refreshData() { loadData(); }
 
-// ════════════════════════════════════════════════════════════════════════════
-// CASCADING FILTERS
-// ════════════════════════════════════════════════════════════════════════════
 function updateCascadingFilters() {
   var selV = document.getElementById('fVendor').value;
   var selB = document.getElementById('fBranch').value;
@@ -834,9 +770,6 @@ function clearFilters() {
   applyFilters();
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// RENDER
-// ════════════════════════════════════════════════════════════════════════════
 function renderItems() {
   var list  = document.getElementById('itemsList');
   var empty = document.getElementById('emptyState');
@@ -891,9 +824,6 @@ function abt(cls, icon, label, k, type) {
     '<span id="chk_' + k + '_' + type + '" style="font-weight:900;"></span></button>';
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// FEEDBACK ACTIONS
-// ════════════════════════════════════════════════════════════════════════════
 function toggleAction(k, type) {
   if (!S.batchSelections[k]) {
     S.batchSelections[k] = {
@@ -970,9 +900,6 @@ function onInputValue(k, type, val) {
   updateBatchBarState();
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// BATCH BAR & SUBMIT
-// ════════════════════════════════════════════════════════════════════════════
 function updateBatchBarState() {
   var total = S.filtered.length, completed = 0;
   S.filtered.forEach(function(iss) {
@@ -1029,9 +956,6 @@ function submitBatchTasks() {
   });
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// SUMMARY FORM – يظهر بعد إرسال الفيدباك للموظفين
-// ════════════════════════════════════════════════════════════════════════════
 function showSummaryForm(count) {
   var html =
     '<div class="sf-overlay" id="sfOverlay">' +
@@ -1087,9 +1011,6 @@ function submitSummaryForm() {
   });
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// HELPERS
-// ════════════════════════════════════════════════════════════════════════════
 function doLogout() { clearCache(); location.reload(); }
 function cKey(iss) { return (iss.orderId + '_' + iss.itemSku).replace(/[^a-zA-Z0-9_]/g, '_'); }
 function esc(s) {
