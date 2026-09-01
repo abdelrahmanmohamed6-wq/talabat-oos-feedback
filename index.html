@@ -314,7 +314,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 // CONFIG – ضع رابط النشر من Apps Script هنا
 // ════════════════════════════════════════════════════════════════════════════
-var API_URL = "https://script.google.com/macros/s/AKfycbwQYBjeD3-R6X4lL-Izwh4sT1riUqNq0izuL0nMqifoVn4Gil4ZGfaMXOr6s8UNkEf1/exec";
+var API_URL = "https://script.google.com/macros/s/AKfycbxjabytSWsUXElsvvHwPyhW8d3m312le2B0XOYzp7Zr5LQYeEUqL0OOMkiMmcJJqmsR/exec";
 
 // ════════════════════════════════════════════════════════════════════════════
 // STATE
@@ -584,6 +584,10 @@ function handleSelfieSelect(input) {
 }
 
 function confirmLoginWithPhoto() {
+  // منع الضغط المزدوج
+  var btn = document.getElementById('btnConfirmLogin');
+  if (btn) { if (btn._submitting) return; btn._submitting = true; btn.disabled = true; }
+
   showLoader();
   setLoaderText('جاري تسجيل الحضور...');
   var loc = S.location || {};
