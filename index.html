@@ -507,22 +507,23 @@ function showSelfieModal() {
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
+// 📐 تكبير الصورة لـ 400px وتوضيح الجودة
 function handleSelfieSelect(input) {
   var file = input.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
     var img = new Image();
     img.onload = function() {
-      var MAX = 180;
+      var MAX = 400;
       var ratio = Math.min(MAX / img.width, MAX / img.height, 1);
       var canvas = document.createElement('canvas');
       canvas.width  = Math.round(img.width  * ratio);
       canvas.height = Math.round(img.height * ratio);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      capturedSelfieData = canvas.toDataURL('image/jpeg', 0.35);
+      capturedSelfieData = canvas.toDataURL('image/jpeg', 0.7);
 
       var preview = document.getElementById('selfiePreview');
-      if (preview) preview.innerHTML = '<img src="' + capturedSelfieData + '" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">';
+      if (preview) preview.innerHTML = '<img src="' + capturedSelfieData + '" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">';
       var btn = document.getElementById('btnConfirmLogin');
       if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
     };
@@ -531,13 +532,35 @@ function handleSelfieSelect(input) {
   reader.readAsDataURL(file);
 }
 
+// 🌐 رفع الصورة لسيرفر ImgBB وتحويلها أوتوماتيكياً لرابط أزرق مباشر
 function confirmLoginWithPhoto() {
   var btn = document.getElementById('btnConfirmLogin');
   if (btn) { if (btn._submitting) return; btn._submitting = true; btn.disabled = true; }
 
   showLoader();
-  setLoaderText('جاري تسجيل الحضور وترحيل البيانات...');
+  setLoaderText('جاري رفع الصورة وتحويلها للينك مباشر...');
+  var rawB64 = capturedSelfieData.split(',')[1] || '';
+
+  var formData = new FormData();
+  formData.append('image', rawB64);
+
+  fetch('https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5', {
+    method: 'POST',
+    body: formData
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(res) {
+    var directImageUrl = (res && res.data && res.data.url) ? res.data.url : "";
+    sendLoginDataToBackend(directImageUrl);
+  })
+  .catch(function() {
+    sendLoginDataToBackend("");
+  });
+}
+
+function sendLoginDataToBackend(photoUrl) {
   var loc = S.location || {};
+  setLoaderText('جاري تسجيل الحضور...');
 
   callAPI('recordUserLogin', {
     name:      S.user,
@@ -548,16 +571,16 @@ function confirmLoginWithPhoto() {
     accuracy:  loc.accuracy || '',
     mapsUrl:   loc.mapsUrl  || '',
     areaName:  loc.areaName || '',
-    photo:     capturedSelfieData
+    photo:     photoUrl
   }, function(err, res) {
     capturedSelfieData = '';
     var modal = document.getElementById('selfieModal');
     if (modal) modal.remove();
 
     if (!err && res && res.status === 'success') {
-      toast('تم تسجيل الحضور والصورة بنجاح ✅', 'ok');
+      toast('تم تسجيل الحضور ورفع الصورة المباشرة ✅', 'ok');
     } else {
-      toast('تم الحضور بنجاح', 'inf');
+      toast('تم تسجيل الحضور بنجاح', 'inf');
     }
     populateAdminDropdown();
     loadData();
@@ -636,8 +659,8 @@ function renderAttendance() {
   }
 
   filtered.forEach(function(l) {
-    var photoHtml = (l.photo && l.photo.indexOf('data:image') === 0)
-      ? '<img src="' + esc(l.photo) + '" class="att-photo-ph" style="border:2.5px solid var(--primary);object-fit:cover;">'
+    var photoHtml = (l.photo && l.photo.indexOf('http') === 0)
+      ? '<a href="' + esc(l.photo) + '" target="_blank" title="عرض صورة الحضور" class="att-photo-ph" style="background:var(--primary-bg);border:2.5px solid var(--primary);text-decoration:none;font-size:26px;display:flex;align-items:center;justify-content:center;">📸</a>'
       : '<div class="att-photo-ph">👤</div>';
 
     var locLabel = l.areaName ? esc(l.areaName) : 'عرض الموقع';
@@ -655,7 +678,8 @@ function renderAttendance() {
       '<div class="att-info">' +
         '<div class="att-name">' + esc(l.name) + '</div>' +
         '<div class="att-row">⏰ <strong>وصل:</strong> ' + esc(l.loginTime || '—') + '</div>' +
-        '<div class="att-row">📸 <strong>سيلفي:</strong> ' + esc(l.selfieTime || '—') + '</div>' +
+        '<div class="att-row">📸 <strong>سيلفي:</strong> ' + esc(l.selfieTime || '—') +
+          (l.photo ? ' · <a href="' + esc(l.photo) + '" target="_blank" style="color:var(--primary);font-size:10px;font-weight:800;">عرض</a>' : '') + '</div>' +
         '<div class="att-row">' + locHtml + '</div>' +
         '<div class="att-row">📦 منتجات مكتملة: <span class="att-badge">' + (l.completed || 0) + ' / ' + total + '</span></div>' +
       '</div>';
