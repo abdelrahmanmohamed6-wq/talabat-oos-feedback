@@ -1,5 +1,5 @@
 // 🔗 ضع رابط النشر المباشر من Google Apps Script هنا
-var API_URL = "https://script.google.com/macros/s/AKfycbwQYBjeD3-R6X4lL-Izwh4sT1riUqNq0izuL0nMqifoVn4Gil4ZGfaMXOr6s8UNkEf1/exec";
+var API_URL = "https://script.google.com/macros/s/AKfycbxjabytSWsUXElsvvHwPyhW8d3m312le2B0XOYzp7Zr5LQYeEUqL0OOMkiMmcJJqmsR/exec";
 
 var S = { user: null, userEmail: null, isOwner: false, ownerViewingUser: null, all: [], filtered: [], batchSelections: {}, allTeamNames: [], currentToken: null };
 
