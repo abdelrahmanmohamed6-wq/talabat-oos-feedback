@@ -604,19 +604,25 @@ function confirmLoginWithPhoto() {
     var modal = document.getElementById('selfieModal');
     if (modal) modal.remove();
 
-    // Call 2: ارفع الصورة في الخلفية بـ URL-safe base64 (بدون + أو / تتسبب في مشاكل)
+    // Call 2: ارفع الصورة (synchronous عشان نشوف النتيجة)
     if (!err && res && res.rowNum && photoSnapshot) {
       var rawB64  = photoSnapshot.split(',')[1] || '';
       var safeB64 = rawB64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      setLoaderText('جاري رفع صورة الحضور...');
       callAPI('uploadSelfiePhoto', {
         name:   S.user,
         photo:  safeB64,
         rowNum: res.rowNum
-      }, function() {}); // fire-and-forget
+      }, function(e2, r2) {
+        if (r2 && r2.photoUrl) toast('تم رفع الصورة بنجاح ✅', 'ok');
+        else toast('تعذر رفع الصورة – rowNum=' + res.rowNum, 'err');
+        populateAdminDropdown();
+        loadData();
+      });
+    } else {
+      populateAdminDropdown();
+      loadData();
     }
-
-    populateAdminDropdown();
-    loadData();
   });
 }
 
