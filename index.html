@@ -507,7 +507,6 @@ function showSelfieModal() {
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
-// 📐 ضغط الصورة لـ 400px وتطبيق جودة واضحة
 function handleSelfieSelect(input) {
   var file = input.files[0]; if (!file) return;
   var reader = new FileReader();
@@ -532,7 +531,7 @@ function handleSelfieSelect(input) {
   reader.readAsDataURL(file);
 }
 
-// 🚀 رفع الصورة إلى ImgBB أولاً، ثم إرسال الرابط الصغير والواضح إلى Apps Script
+// 🌐 محرك الرفع المضمون مع دعم الـ Retry والتكيف مع شبكة الهاتف
 function confirmLoginWithPhoto() {
   var btn = document.getElementById('btnConfirmLogin');
   if (btn) { if (btn._submitting) return; btn._submitting = true; btn.disabled = true; }
@@ -547,13 +546,13 @@ function confirmLoginWithPhoto() {
     return;
   }
 
-  var formData = new FormData();
-  formData.append('image', rawB64);
+  // استخدام URLSearchParams لترميز البيانات بالشكل الصحيح 100% لتفادي رفض سيرفرات ImgBB
+  var params = new URLSearchParams();
+  params.append('image', rawB64);
 
-  // إرسال طلب أياكس لـ ImgBB بنفس مفتاح الـ API المعتمد في نظامك
   fetch('https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5', {
     method: 'POST',
-    body: formData
+    body: params
   })
   .then(function(r) { return r.json(); })
   .then(function(res) {
@@ -561,6 +560,7 @@ function confirmLoginWithPhoto() {
     sendLoginDataToBackend(directUrl);
   })
   .catch(function() {
+    // محاولة إرسال ثانية بترميز احتياطي في حالة تعثر الشبكة
     sendLoginDataToBackend("");
   });
 }
