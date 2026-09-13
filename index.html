@@ -335,9 +335,33 @@ function parseJwt(token) {
   } catch(e) { return null; }
 }
 
+// 🌐 محرك الاتصالات المزدوج (GET للقراءة، POST للكتابة الثقيلة)
 function callAPI(action, payload, callback) {
-  var cbName = 'jsonp_' + Math.round(1e6 * Math.random());
+  // القائمة البيضاء للعمليات التي تتطلب POST (بسبب حجم البيانات)
+  var postActions = ['recordUserLogin', 'submitBatchFeedback', 'submitBranchSummary'];
+  
+  if (postActions.indexOf(action) !== -1) {
+    // 🚀 استخدام POST للبيانات الثقيلة (الصور)
+    fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: action,
+        id_token: S.currentToken,
+        payload: payload
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (callback) callback(null, data);
+    })
+    .catch(function(err) {
+      if (callback) callback(err, null);
+    });
+    return;
+  }
 
+  // 📝 استخدام JSONP GET للعمليات السريعة والقراءة
+  var cbName = 'jsonp_' + Math.round(1e6 * Math.random());
   var timeout = setTimeout(function() {
     delete window[cbName];
     if (callback) callback(new Error('انتهت مهلة الاتصال'), null);
@@ -394,6 +418,7 @@ function handleCredentialResponse(response) {
   showLoader();
   setLoaderText('جاري التحقق من صلاحيات الدخول في شيت maping...');
 
+  // التحقق عبر GET (سريع)
   callAPI('verifyUserAuth', { email: tokenData.email }, function(err, res) {
     hideLoader();
 
@@ -513,6 +538,7 @@ function handleSelfieSelect(input) {
   reader.onload = function(e) {
     var img = new Image();
     img.onload = function() {
+      // ضغط الصورة (الآن اختياري لأننا نستخدم POST ولكن مفيد للسرعة والشيت)
       var MAX = 400;
       var ratio = Math.min(MAX / img.width, MAX / img.height, 1);
       var canvas = document.createElement('canvas');
@@ -531,44 +557,15 @@ function handleSelfieSelect(input) {
   reader.readAsDataURL(file);
 }
 
-// 🌐 محرك الرفع المضمون مع دعم الـ Retry والتكيف مع شبكة الهاتف
 function confirmLoginWithPhoto() {
   var btn = document.getElementById('btnConfirmLogin');
   if (btn) { if (btn._submitting) return; btn._submitting = true; btn.disabled = true; }
 
   showLoader();
-  setLoaderText('جاري رفع الصورة المباشرة...');
-
-  var rawB64 = capturedSelfieData ? capturedSelfieData.split(',')[1] : '';
-
-  if (!rawB64) {
-    sendLoginDataToBackend("");
-    return;
-  }
-
-  // استخدام URLSearchParams لترميز البيانات بالشكل الصحيح 100% لتفادي رفض سيرفرات ImgBB
-  var params = new URLSearchParams();
-  params.append('image', rawB64);
-
-  fetch('https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5', {
-    method: 'POST',
-    body: params
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(res) {
-    var directUrl = (res && res.data && res.data.url) ? res.data.url : "";
-    sendLoginDataToBackend(directUrl);
-  })
-  .catch(function() {
-    // محاولة إرسال ثانية بترميز احتياطي في حالة تعثر الشبكة
-    sendLoginDataToBackend("");
-  });
-}
-
-function sendLoginDataToBackend(photoUrl) {
+  setLoaderText('جاري تسجيل الحضور (عبر POST)...');
   var loc = S.location || {};
-  setLoaderText('جاري تسجيل الحضور...');
 
+  // الإرسال عبر POST (لا حدود للحجم)
   callAPI('recordUserLogin', {
     name:      S.user,
     email:     S.userEmail,
@@ -578,16 +575,16 @@ function sendLoginDataToBackend(photoUrl) {
     accuracy:  loc.accuracy || '',
     mapsUrl:   loc.mapsUrl  || '',
     areaName:  loc.areaName || '',
-    photo:     photoUrl
+    photo:     capturedSelfieData // كود الصورة الكامل يمر بسلام
   }, function(err, res) {
     capturedSelfieData = '';
     var modal = document.getElementById('selfieModal');
     if (modal) modal.remove();
 
     if (!err && res && res.status === 'success') {
-      toast('تم تسجيل الحضور ورفع الصورة بنجاح ✅', 'ok');
+      toast('تم تسجيل الحضور والصورة بنجاح ✅', 'ok');
     } else {
-      toast('تم تسجيل الحضور بنجاح', 'inf');
+      toast('فشل تسجيل الصورة ولكن تم تسجيل الوقت', 'err');
     }
     populateAdminDropdown();
     loadData();
@@ -613,6 +610,7 @@ var _allLoginLogs = [];
 
 function openAdminDashboardModal() {
   document.getElementById('adminDashboardModal').classList.add('on');
+  // التحقق عبر GET
   callAPI('getAdminAnalytics', { email: S.userEmail }, function(err, data) {
     if (err || !data) return;
 
@@ -666,8 +664,9 @@ function renderAttendance() {
   }
 
   filtered.forEach(function(l) {
-    var photoHtml = (l.photo && l.photo.indexOf('http') === 0)
-      ? '<a href="' + esc(l.photo) + '" target="_blank" title="عرض صورة الحضور" class="att-photo-ph" style="background:var(--primary-bg);border:2.5px solid var(--primary);text-decoration:none;font-size:26px;display:flex;align-items:center;justify-content:center;">📸</a>'
+    // عرض الصورة مباشرة من الـ Base64 المخزن في الخلية
+    var photoHtml = (l.photo && l.photo.indexOf('data:image') === 0)
+      ? '<img src="' + esc(l.photo) + '" class="att-photo-ph" style="border:2.5px solid var(--primary);object-fit:cover;">'
       : '<div class="att-photo-ph">👤</div>';
 
     var locLabel = l.areaName ? esc(l.areaName) : 'عرض الموقع';
@@ -685,8 +684,7 @@ function renderAttendance() {
       '<div class="att-info">' +
         '<div class="att-name">' + esc(l.name) + '</div>' +
         '<div class="att-row">⏰ <strong>وصل:</strong> ' + esc(l.loginTime || '—') + '</div>' +
-        '<div class="att-row">📸 <strong>سيلفي:</strong> ' + esc(l.selfieTime || '—') +
-          (l.photo ? ' · <a href="' + esc(l.photo) + '" target="_blank" style="color:var(--primary);font-size:10px;font-weight:800;">عرض</a>' : '') + '</div>' +
+        '<div class="att-row">📸 <strong>سيلفي:</strong> ' + esc(l.selfieTime || '—') + '</div>' +
         '<div class="att-row">' + locHtml + '</div>' +
         '<div class="att-row">📦 منتجات مكتملة: <span class="att-badge">' + (l.completed || 0) + ' / ' + total + '</span></div>' +
       '</div>';
@@ -704,6 +702,7 @@ function loadData() {
   var action  = S.isOwner ? 'getOwnerData'  : 'getUserData';
   var payload = S.isOwner ? { filterName: S.ownerViewingUser } : { user: S.user };
 
+  // القراءة عبر GET
   callAPI(action, payload, function(err, res) {
     hideLoader();
     if (err || !res) { toast('فشل التحميل – تحقق من الاتصال', 'err'); return; }
@@ -919,7 +918,7 @@ function onCameraCapture(input, k, type) {
   var reader = new FileReader();
   reader.onload = function(e) {
     if (S.batchSelections[k] && S.batchSelections[k].actions[type])
-      S.batchSelections[k].actions[type].value = e.target.result;
+      S.batchSelections[k].actions[type].value = e.target.result; // Base64 الكامل
     updateBatchBarState();
   };
   reader.readAsDataURL(file);
@@ -967,6 +966,7 @@ function submitBatchTasks() {
         var actObj = sel.actions[actType];
         if ((actType === 'SYSTEM_EQUAL' || actType === 'SYSTEM_DIFF' || actType === 'IMAGE_ISSUE') && !actObj.value)
           missingCamera = true;
+        // القيمة المرسلة هي Base64 الكامل للصورة أو النص
         payload.push({ issueData: iss, actionType: actType, actionValue: actObj.value || '' });
       }
     }
@@ -976,7 +976,8 @@ function submitBatchTasks() {
   if (payload.length < S.filtered.length) { toast('يجب تحديد الفيدباك لكل الكروت أولاً', 'err'); return; }
 
   showLoader();
-  setLoaderText('جاري إرسال الفيدباك...');
+  setLoaderText('جاري إرسال الفيدباك المجمع عبر POST...');
+  // الإرسال عبر POST
   callAPI('submitBatchFeedback', { items: payload }, function(err, res) {
     hideLoader();
     if (res && res.status === 'success') {
@@ -1032,7 +1033,8 @@ function submitSummaryForm() {
     orderId:        document.getElementById('sf_order').value.trim(),
     vendorIssue:    document.getElementById('sf_vendor').value.trim()
   };
-  showLoader(); setLoaderText('جاري حفظ ملخص الزيارة...');
+  showLoader(); setLoaderText('جاري حفظ ملخص الزيارة عبر POST...');
+  // الإرسال عبر POST
   callAPI('submitBranchSummary', data, function() {
     hideLoader();
     var ov = document.getElementById('sfOverlay');
