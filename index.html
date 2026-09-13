@@ -62,7 +62,7 @@
       border: 1.5px solid var(--error);
       font-size: 12px;
       font-weight: 700;
-      margin-top: 16px;
+      margin-top: 166px;
       line-height: 1.6;
     }
 
@@ -73,10 +73,6 @@
     .header-row { display: flex; align-items: center; justify-content: space-between; height: 56px; }
     .brand { display: flex; align-items: center; gap: 8px; }
     .brand-icon { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
-
-    .admin-filter-bar { display: none; align-items: center; gap: 10px; padding: 10px 16px; background: var(--primary-bg); border-bottom: 1px solid var(--border); }
-    .admin-filter-bar.show { display: flex; }
-    .admin-user-select { flex: 1; padding: 8px; border: 1.5px solid var(--primary); border-radius: var(--r-sm); font-family: 'Cairo'; }
 
     .branch-summary-bar {
       background: #1E293B; color: white; padding: 10px 16px;
@@ -106,7 +102,7 @@
     .cb-item-name { font-size: 13px; font-weight: 800; color: var(--text); background: var(--primary-bg); padding: 6px 9px; border-radius: var(--r-sm); margin-bottom: 6px; border-right: 3px solid var(--primary); }
     .cb-sku { font-size: 10px; color: var(--text-2); font-family: monospace; margin-bottom: 6px; }
     .cb-img-col { display: flex; align-items: center; justify-content: center; padding: 8px; border: 1px solid var(--border); border-radius: var(--r-sm); min-height: 180px; background: #FAFAFA; width: 100%; }
-    .center-product-img { max-width: 100%; max-height: 220px; object-fit: contain; border-radius: var(--r-sm); background: white; padding: 4px; }
+    .center-product-img { max-width: 100%; max-height: 220px; object-fit: contain; border-radius: var(--r-sm); }
     .cb-actions { direction: rtl; display: flex; flex-direction: column; gap: 5px; width: 100%; }
 
     .abt { width: 100%; padding: 8px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: white; font-family: 'Cairo'; font-size: 11px; font-weight: 700; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
@@ -122,7 +118,7 @@
     #adminDashboardModal { display: none; position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 16px; }
     #adminDashboardModal.on { display: flex; }
     .dash-box { background: white; border-radius: var(--r-lg); padding: 24px; width: 100%; max-width: 850px; max-height: 90vh; overflow-y: auto; }
-    .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0; }
+    .dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
     .dash-kpi { background: var(--bg); padding: 12px; border-radius: var(--r-sm); text-align: center; }
 
     #toastWrap { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 6px; pointer-events: none; width: 90%; max-width: 360px; }
@@ -131,15 +127,7 @@
     .toast.err { background: var(--error); }
     .toast.inf { background: var(--primary); }
 
-    .att-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
-    .att-filter-input { flex:1; min-width:130px; padding:7px 10px; border:1.5px solid var(--border); border-radius:var(--r-sm); font-family:'Cairo'; font-size:12px; }
-    .att-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
-    .att-card { background:var(--bg); border-radius:var(--r); padding:14px; display:flex; gap:12px; align-items:flex-start; border:1px solid var(--border); }
-    .att-photo-ph { width:56px; height:56px; border-radius:50%; background:var(--primary-bg); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; overflow:hidden; }
-    .att-info { flex:1; min-width:0; }
-    .att-name { font-weight:900; font-size:13px; margin-bottom:4px; }
-    .att-row { font-size:11px; color:var(--text-2); margin-bottom:2px; }
-    .att-badge { display:inline-block; background:var(--success-bg); color:var(--success); font-size:10px; font-weight:800; padding:2px 7px; border-radius:var(--r-full); margin-left:4px; }
+    .att-photo-ph { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-bg); display: flex; align-items: center; justify-content: center; font-size: 14px; margin-left: 6px; }
     
     .sf-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px; }
     .sf-box { background:white; border-radius:var(--r-lg); padding:24px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; }
@@ -162,7 +150,7 @@
 
 <div id="globalLoader">
   <div style="font-size:48px; margin-bottom:12px;">💉</div>
-  <div id="loaderText" style="font-size:18px; font-weight:900; letter-spacing:1px;">TALABAT OOS</div>
+  <div style="font-size:18px; font-weight:900; letter-spacing:1px;">TALABAT OOS</div>
   <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
 </div>
 
@@ -170,27 +158,22 @@
   <div class="login-card">
     <div style="font-size:44px; margin-bottom:12px;">💉</div>
     <h1 style="font-size:22px; font-weight:900; margin-bottom:4px;">بوابة الفيدباك</h1>
-    <p style="font-size:12px; color:var(--text-2); margin-bottom:28px;">Talabat OOS · تسجيل الدخول بحساب Google</p>
-
+    <p style="font-size:12px; color:var(--text-2); margin-bottom:28px;">Talabat OOS Mapping · تسجيل الدخول بحساب Google</p>
     <div id="g_id_onload"
          data-client_id="397053555500-0kavau822uibedcefps41h4ibg7iueu7.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
          data-auto_select="true"
          data-cancel_on_tap_outside="false">
     </div>
-
-    <div style="display:flex; justify-content:center;">
-      <div class="g_id_signin"
-           data-type="standard"
-           data-size="large"
-           data-theme="outline"
-           data-text="signin_with"
-           data-shape="rectangular"
-           data-logo_alignment="left"
-           data-width="280">
-      </div>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="signin_with"
+         data-shape="rectangular"
+         data-logo_alignment="left"
+         data-width="280">
     </div>
-
     <div id="authErrorMsg"></div>
   </div>
 </div>
@@ -210,26 +193,15 @@
     </div>
   </header>
 
-  <div class="admin-filter-bar" id="adminFilterBar">
-    <span style="font-size:12px; font-weight:800; color:var(--primary-dark);">👁️ عرض بيانات:</span>
-    <select id="adminUserSelect" class="admin-user-select" onchange="adminLoadSelected()"></select>
-  </div>
-
   <div class="branch-summary-bar">
-    <div>
-      إجمالي: <span id="summaryTotalCount" style="color:var(--primary-light); font-weight:900;">0</span> |
-      محدّث: <span id="summaryUpdatedCount" style="color:var(--success); font-weight:900;">0</span> |
-      متبقي: <span id="summaryRemainingCount" style="color:var(--warning); font-weight:900;">0</span>
-    </div>
+    <div>إجمالي: <span id="summaryTotalCount" style="color:var(--primary-light);">0</span> | محدّث: <span id="summaryUpdatedCount" style="color:var(--success);">0</span></div>
     <div id="branchStatusTag" class="branch-status-tag">PENDING ⏳</div>
   </div>
 
   <div class="filter-strip">
-    <select id="fVendor"    class="f-select" onchange="applyFilters()"><option value="">كل الفروع</option></select>
-    <select id="fBranch"    class="f-select" onchange="applyFilters()"><option value="">كل Vendor ID</option></select>
-    <select id="fChainName" class="f-select" onchange="applyFilters()"><option value="">كل Chain Name</option></select>
-    <select id="fChainId"   class="f-select" onchange="applyFilters()"><option value="">كل Chain ID</option></select>
-    <button onclick="clearFilters()" style="padding:6px 12px; border:1px solid var(--error); color:var(--error); border-radius:var(--r-sm); background:white; font-size:11px; font-weight:800; cursor:pointer;">✕ مسح</button>
+    <select id="fVendor" class="f-select" onchange="applyFilters()"><option value="">كل الفروع</option></select>
+    <select id="fBranch" class="f-select" onchange="applyFilters()"><option value="">كل IDs</option></select>
+    <button onclick="clearFilters()" style="padding:6px 12px; border:1px solid var(--border); border-radius:var(--r-sm); background:white; font-size:11px; cursor:pointer;">✕ مسح</button>
   </div>
 
   <main class="items-wrap">
@@ -241,12 +213,8 @@
   </main>
 
   <div class="batch-bottom-bar">
-    <div style="font-size:12px; font-weight:700;">
-      مكتمل: <span id="batchCompletedCount" style="color:var(--primary); font-size:16px; font-weight:900;">0</span> / <span id="batchTotalCount">0</span>
-    </div>
-    <button class="btn-batch-submit" id="btnBatchSubmit" onclick="submitBatchTasks()" disabled>
-      🚀 إرسال الفيدباك المجمع
-    </button>
+    <div style="font-size:12px; font-weight:700;">مكتمل: <span id="batchCompletedCount" style="color:var(--primary); font-size:16px; font-weight:900;">0</span> / <span id="batchTotalCount">0</span></div>
+    <button class="btn-batch-submit" id="btnBatchSubmit" onclick="submitBatchTasks()" disabled>🚀 إرسال الفيدباك المجمع</button>
   </div>
 </div>
 
@@ -256,92 +224,52 @@
       <h3 style="font-weight:900; font-size:16px;">👑 لوحة تحليلات المدير</h3>
       <button onclick="closeAdminDashboardModal()" style="border:none; background:var(--bg); padding:5px 10px; border-radius:var(--r-sm); font-weight:800; cursor:pointer;">✕</button>
     </div>
-
     <div class="dash-grid">
-      <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--primary);"  id="dashKpiTotal">0</div><div style="font-size:10px;color:var(--text-2);">إجمالي</div></div>
+      <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--primary);" id="dashKpiTotal">0</div><div style="font-size:10px;color:var(--text-2);">إجمالي</div></div>
       <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--warning);" id="dashKpiPending">0</div><div style="font-size:10px;color:var(--text-2);">معلّق</div></div>
       <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--success);" id="dashKpiCompleted">0</div><div style="font-size:10px;color:var(--text-2);">مكتمل</div></div>
-      <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--info);"    id="dashKpiRate">0%</div><div style="font-size:10px;color:var(--text-2);">الإنجاز</div></div>
     </div>
-
-    <h4 style="font-weight:800;font-size:13px;margin-top:16px;">👥 أداء الفريق</h4>
-    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;">
-      <thead><tr style="background:var(--bg);"><th>الموظف</th><th>معلّق</th><th>مكتمل</th><th>الإنجاز</th></tr></thead>
-      <tbody id="dashTeamBody"></tbody>
-    </table>
-
-    <h4 style="font-weight:800;font-size:13px;margin-top:20px;">🕒 آخر الإجراءات</h4>
+    <h4 style="font-weight:800;font-size:13px;margin-top:16px;">🕒 آخر الإجراءات (50)</h4>
     <div style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);margin-top:6px;">
-      <table style="width:100%;border-collapse:collapse;font-size:11px;">
-        <thead><tr style="background:var(--bg);"><th>الوقت</th><th>الموظف</th><th>الطلب</th><th>الإجراء</th></tr></thead>
-        <tbody id="dashAuditBody"></tbody>
+      <table id="dashAuditTable" style="width:100%;border-collapse:collapse;font-size:11px;text-align:right;">
+        <thead style="background:var(--bg);"><tr><th>الوقت</th><th>الموظف</th><th>الطلب</th><th>الإجراء</th></tr></thead>
+        <tbody></tbody>
       </table>
     </div>
-
-    <h4 style="font-weight:800;font-size:13px;margin-top:24px;padding-top:16px;border-top:2px solid var(--border);">📸 سجل الحضور والموقع</h4>
-    <div class="att-filters" style="margin-top:10px;">
-      <input type="date" id="attFilterDate" class="att-filter-input" onchange="renderAttendance()" placeholder="اختر التاريخ">
-      <select id="attFilterEmp" class="att-filter-input" onchange="renderAttendance()">
-        <option value="">— كل الموظفين —</option>
-      </select>
-      <button onclick="document.getElementById('attFilterDate').value='';document.getElementById('attFilterEmp').value='';renderAttendance();" style="padding:7px 12px;border:1px solid var(--border);border-radius:var(--r-sm);background:white;font-size:11px;font-weight:800;cursor:pointer;">✕ مسح</button>
+    <h4 style="font-weight:800;font-size:13px;margin-top:16px;">📸 سجل الحضور (100)</h4>
+    <div style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);margin-top:6px;">
+      <table id="dashTrackerTable" style="width:100%;border-collapse:collapse;font-size:11px;text-align:right;">
+        <thead style="background:var(--bg);"><tr><th>الوقت</th><th>الموظف</th><th>الموقع</th><th>الصورة</th><th>مكتمل/باقي</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </div>
-    <div id="attGrid" class="att-grid"></div>
   </div>
 </div>
 
 <div id="toastWrap"></div>
 
 <script>
+// ==============================================================================
+// 🔧 تفعيل محرك الـ POST للكتابة الثقيلة - الحل الجذري (Final Version)
+// ==============================================================================
 var API_URL = "https://script.google.com/macros/s/AKfycbxjabytSWsUXElsvvHwPyhW8d3m312le2B0XOYzp7Zr5LQYeEUqL0OOMkiMmcJJqmsR/exec";
 
-var S = {
-  user: null, userEmail: null, isOwner: false,
-  ownerViewingUser: null, currentToken: null,
-  all: [], filtered: [], batchSelections: {}, allTeamNames: [],
-  location: null, loginTime: null
-};
+var S = { user: null, userEmail: null, isOwner: false, currentToken: null, all: [], filtered: [], batchSelections: {} };
+var _SKEY = 'oos_sess'; var _STTL = 4 * 60 * 60 * 1000;
 
-var _SKEY = 'oos_sess_v2';
-var _STTL = 8 * 60 * 60 * 1000;
+function readCache() { try { var c = JSON.parse(localStorage.getItem(_SKEY)); return (c && (Date.now() - c.ts) < _STTL) ? c : null; } catch(e) { return null; } }
+function writeCache(sess) { try { localStorage.setItem(_SKEY, JSON.stringify({name:sess.name, email:sess.email, isOwner:sess.isOwner, ts:Date.now()})); } catch(e) {} }
+function clearCache() { localStorage.removeItem(_SKEY); }
 
-function readCache() {
-  try {
-    var c = JSON.parse(localStorage.getItem(_SKEY) || 'null');
-    return (c && (Date.now() - c.ts) < _STTL) ? c : null;
-  } catch(e) { return null; }
-}
-function writeCache(sess) {
-  try {
-    localStorage.setItem(_SKEY, JSON.stringify({
-      name: sess.name, email: sess.email,
-      isOwner: sess.isOwner, allNames: sess.allNames || [],
-      ts: Date.now()
-    }));
-  } catch(e) {}
-}
-function clearCache() { try { localStorage.removeItem(_SKEY); } catch(e) {} }
+function parseJwt(token) { try { return JSON.parse(decodeURIComponent(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(function(c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join(''))); } catch(e) { return null; } }
 
-function parseJwt(token) {
-  try {
-    var base64Url = token.split('.')[1];
-    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    var json = decodeURIComponent(
-      atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join('')
-    );
-    return JSON.parse(json);
-  } catch(e) { return null; }
-}
-
-// 🌐 محرك الاتصالات المزدوج (GET للقراءة، POST للكتابة الثقيلة)
+// 🌐 محرك الاتصالات المزدوج لضمان ثبات الإرسال وعدم قص الرابط
 function callAPI(action, payload, callback) {
-  // القائمة البيضاء للعمليات التي تتطلب POST (بسبب حجم البيانات)
+  // القائمة البيضاء للعمليات التي تتطلب POST (بسبب حجم البيانات/الصور)
   var postActions = ['recordUserLogin', 'submitBatchFeedback', 'submitBranchSummary'];
   
   if (postActions.indexOf(action) !== -1) {
-    // 🚀 استخدام POST للبيانات الثقيلة (الصور)
+    // 🚀 استخدام POST للبيانات الثقيلة
     fetch(API_URL, {
       method: 'POST',
       body: JSON.stringify({
@@ -351,25 +279,21 @@ function callAPI(action, payload, callback) {
       })
     })
     .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (callback) callback(null, data);
-    })
-    .catch(function(err) {
-      if (callback) callback(err, null);
-    });
+    .then(function(data) { if (callback) callback(null, data); })
+    .catch(function(err) { if (callback) callback(err, null); });
     return;
   }
 
-  // 📝 استخدام JSONP GET للعمليات السريعة والقراءة
+  // 📝 استخدام JSONP GET للقراءة والعمليات السريعة (مصلح)
   var cbName = 'jsonp_' + Math.round(1e6 * Math.random());
-  var timeout = setTimeout(function() {
-    delete window[cbName];
-    if (callback) callback(new Error('انتهت مهلة الاتصال'), null);
-  }, 30000);
+  
+  // تدمير أي طلب JSONP قديم يحمل نفس الاسم لتجنب التعارض
+  if (window[cbName]) { delete window[cbName]; }
+
+  var timeout = setTimeout(function() { delete window[cbName]; if (callback) callback(new Error('انتهت مهلة الاتصال'), null); }, 30000);
 
   window[cbName] = function(data) {
-    clearTimeout(timeout);
-    delete window[cbName];
+    clearTimeout(timeout); delete window[cbName];
     var el = document.getElementById(cbName);
     if (el && el.parentNode) el.parentNode.removeChild(el);
     if (callback) callback(null, data);
@@ -382,153 +306,67 @@ function callAPI(action, payload, callback) {
   script.id  = cbName;
   script.src = API_URL + '?action=' + action +
     '&payload=' + encodeURIComponent(JSON.stringify(payload)) +
-    '&callback=' + cbName;
-  script.onerror = function() {
-    clearTimeout(timeout);
-    delete window[cbName];
-    if (script.parentNode) script.parentNode.removeChild(script);
-    if (callback) callback(new Error('فشل الاتصال بالخادم'), null);
-  };
+    '&callback=' + cbName; // تأكد من إرسال اسم الـ callback بشكل صحيح
+  script.onerror = function() { clearTimeout(timeout); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); if (callback) callback(new Error('فشل الاتصال بالخادم'), null); };
   document.body.appendChild(script);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
   var cached = readCache();
-  if (cached && cached.isOwner) {
-    S.user = cached.name; S.userEmail = cached.email;
-    S.isOwner = true; S.allTeamNames = cached.allNames || [];
-    populateAdminDropdown();
-    loadData();
-  } else {
-    clearCache();
-    hideLoader();
-    show('loginScreen');
-  }
+  if (cached) { S.user = cached.name; S.userEmail = cached.email; S.isOwner = cached.isOwner; loadData(); }
+  else { hideLoader(); show('loginScreen'); }
 });
 
 function handleCredentialResponse(response) {
   S.currentToken = response.credential;
-
   var tokenData = parseJwt(response.credential);
-  if (!tokenData || !tokenData.email) {
-    showAuthError('تعذر قراءة بيانات الحساب من Google. حاول مرة أخرى.');
-    return;
-  }
-
+  if (!tokenData || !tokenData.email) { showAuthError('تعذر قراءة بيانات الحساب من Google'); return; }
+  
   showLoader();
-  setLoaderText('جاري التحقق من صلاحيات الدخول في شيت maping...');
-
-  // التحقق عبر GET (سريع)
+  setLoaderText('جاري التحقق من صلاحيات الدخول...');
+  
+  // التحقق عبر GET (سريع ومصلح)
   callAPI('verifyUserAuth', { email: tokenData.email }, function(err, res) {
     hideLoader();
-
-    if (err || !res) {
-      showAuthError('تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مجدداً.');
-      return;
-    }
-
-    if (!res.isAuthorized) {
-      showAuthError('🚫 ' + (res.message || 'هذا الحساب غير مصرح له بالدخول نهائياً.'));
-      return;
-    }
-
-    clearAuthError();
-    S.user         = res.name;
-    S.userEmail    = res.email;
-    S.isOwner      = res.isOwner;
-    S.allTeamNames = res.allNames || [];
+    if (err || !res) { showAuthError('فشل الاتصال بالخادم. تحقق من الإنترنت'); return; }
+    if (!res.isAuthorized) { showAuthError('🚫 ' + (res.message || 'هذا الحساب غير مصرح له بالدخول')); return; }
+    
+    clearAuthError(); S.user = res.name; S.userEmail = res.email; S.isOwner = res.isOwner;
     writeCache(res);
-
-    if (S.isOwner) {
-      populateAdminDropdown();
-      loadData();
-    } else {
-      S.loginTime = new Date().toISOString();
-      requestLocationThenSelfie();
-    }
+    
+    if (S.isOwner) { loadData(); }
+    else { requestLocationThenSelfie(); }
   });
 }
 
 function requestLocationThenSelfie() {
-  if (!navigator.geolocation) {
-    showAuthError('متصفحك لا يدعم تحديد الموقع. استخدم Chrome أو Safari.');
-    return;
-  }
-
+  if (!navigator.geolocation) { showAuthError('متصفحك لا يدعم تحديد الموقع'); return; }
+  
   var overlay = document.createElement('div');
   overlay.id = 'locWaiting';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(255,98,0,0.96);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;padding:24px;';
-  overlay.innerHTML =
-    '<div style="font-size:56px;margin-bottom:16px;">📍</div>' +
-    '<div style="font-size:18px;font-weight:900;margin-bottom:8px;">جاري تحديد موقعك...</div>' +
-    '<div style="font-size:13px;opacity:0.85;">اضغط "السماح" في نافذة المتصفح</div>';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(255,98,0,0.95);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;padding:24px;';
+  overlay.innerHTML = '<div style="font-size:56px;margin-bottom:16px;">📍</div><div style="font-size:18px;font-weight:900;">جاري تحديد موقعك...</div>';
   document.body.appendChild(overlay);
 
   navigator.geolocation.getCurrentPosition(
     function(pos) {
-      var el = document.getElementById('locWaiting');
-      if (el) el.remove();
+      if (document.getElementById('locWaiting')) document.getElementById('locWaiting').remove();
       var lat = pos.coords.latitude, lng = pos.coords.longitude;
-      S.location = {
-        lat:      lat,
-        lng:      lng,
-        accuracy: Math.round(pos.coords.accuracy),
-        mapsUrl:  'https://www.google.com/maps?q=' + lat + ',' + lng,
-        areaName: ''
-      };
-      if (window.fetch) {
-        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=14&accept-language=ar')
-          .then(function(r) { return r.json(); })
-          .then(function(d) {
-            var a = d.address || {};
-            S.location.areaName = a.suburb || a.neighbourhood || a.quarter || a.city_district || a.city || '';
-          })
-          .catch(function() {});
-      }
+      S.location = { lat: lat, lng: lng, accuracy: Math.round(pos.coords.accuracy), mapsUrl: 'https://www.google.com/maps?q=' + lat + ',' + lng, areaName: '' };
       showSelfieModal();
     },
-    function() {
-      var el = document.getElementById('locWaiting');
-      if (el) el.remove();
-      var block = document.createElement('div');
-      block.id = 'locBlocked';
-      block.style.cssText = 'position:fixed;inset:0;background:#1E293B;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;padding:24px;';
-      block.innerHTML =
-        '<div style="font-size:56px;margin-bottom:16px;">🚫</div>' +
-        '<div style="font-size:18px;font-weight:900;margin-bottom:8px;">الموقع مطلوب للمتابعة</div>' +
-        '<div style="font-size:13px;opacity:0.75;margin-bottom:24px;line-height:1.8;">يجب السماح بالوصول للموقع لتسجيل الحضور.<br>افتح إعدادات المتصفح وسمح بالموقع لهذا الموقع.</div>' +
-        '<button onclick="location.reload()" style="padding:12px 28px;background:var(--primary);color:white;border:none;border-radius:12px;font-family:Cairo;font-size:14px;font-weight:900;cursor:pointer;">إعادة المحاولة</button>';
-      document.body.appendChild(block);
-    },
-    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    function() { if (document.getElementById('locWaiting')) document.getElementById('locWaiting').innerHTML = '<div style="font-size:56px;margin-bottom:16px;">🚫</div><div style="font-size:18px;font-weight:900;">يجب السماح بالوصول للموقع للمتابعة</div>'; },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
   );
 }
 
-function showAuthError(msg) {
-  var el = document.getElementById('authErrorMsg');
-  if (el) { el.style.display = 'block'; el.textContent = msg; }
-}
-function clearAuthError() {
-  var el = document.getElementById('authErrorMsg');
-  if (el) { el.style.display = 'none'; el.textContent = ''; }
-}
+function showAuthError(msg) { var el = document.getElementById('authErrorMsg'); if (el) { el.style.display = 'block'; el.textContent = msg; } }
+function clearAuthError() { var el = document.getElementById('authErrorMsg'); if (el) { el.style.display = 'none'; el.textContent = ''; } }
 
 var capturedSelfieData = '';
 
 function showSelfieModal() {
-  var html =
-    '<div id="selfieModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">' +
-      '<div style="background:white; border-radius:16px; padding:28px; max-width:360px; width:100%; text-align:center;">' +
-        '<div style="font-size:48px; margin-bottom:12px;">📸</div>' +
-        '<h3 style="font-size:16px; font-weight:900; margin-bottom:8px;">إثبات الحضور بالصورة</h3>' +
-        '<p style="font-size:12px; color:var(--text-2); margin-bottom:20px;">مرحباً <strong>' + esc(S.user) + '</strong>، صورة الحضور إجبارية لتسجيل دوامك اليومي</p>' +
-        '<input type="file" accept="image/*" capture="user" id="selfieInput" style="margin-bottom:16px; font-size:12px;" onchange="handleSelfieSelect(this)">' +
-        '<div id="selfiePreview" style="margin-bottom:16px;"></div>' +
-        '<button id="btnConfirmLogin" onclick="confirmLoginWithPhoto()" disabled ' +
-          'style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:var(--r-sm); font-family:\'Cairo\'; font-weight:900; font-size:14px; cursor:pointer; opacity:0.5;">' +
-          'تأكيد الحضور وبدء العمل ←</button>' +
-      '</div>' +
-    '</div>';
+  var html = '<div id="selfieModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;"><div style="background:white; border-radius:16px; padding:28px; max-width:360px; width:100%; text-align:center;"><div style="font-size:48px; margin-bottom:12px;">📸</div><h3 style="font-size:16px; font-weight:900; margin-bottom:8px;">إثبات الحضور بالصورة</h3><p style="font-size:12px; color:var(--text-2); margin-bottom:20px;">مرحباً <strong>' + esc(S.user) + '</strong>، صورة الحضور إجبارية لتسجيل دوامك اليومي</p><input type="file" accept="image/*" capture="user" id="selfieInput" style="margin-bottom:16px; font-size:12px;" onchange="handleSelfieSelect(this)"><div id="selfiePreview" style="margin-bottom:16px;"></div><button id="btnConfirmLogin" onclick="confirmLoginWithPhoto()" disabled style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:var(--r-sm); font-family:\'Cairo\'; font-weight:900; font-size:14px; cursor:pointer; opacity:0.5;">تأكيد الحضور وبدء العمل ←</button></div></div>';
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
@@ -538,15 +376,13 @@ function handleSelfieSelect(input) {
   reader.onload = function(e) {
     var img = new Image();
     img.onload = function() {
-      // ضغط الصورة (الآن اختياري لأننا نستخدم POST ولكن مفيد للسرعة والشيت)
-      var MAX = 400;
-      var ratio = Math.min(MAX / img.width, MAX / img.height, 1);
-      var canvas = document.createElement('canvas');
-      canvas.width  = Math.round(img.width  * ratio);
-      canvas.height = Math.round(img.height * ratio);
+      // ضغط الصورة (الآن اختياري لأننا نستخدم POST ولكن مفيد لسرعة الرفع)
+      var MAX_WIDTH = 400; var ratio = 1;
+      if (img.width > MAX_WIDTH) ratio = MAX_WIDTH / img.width;
+      var canvas = document.createElement('canvas'); canvas.width = img.width * ratio; canvas.height = img.height * ratio;
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
       capturedSelfieData = canvas.toDataURL('image/jpeg', 0.6);
-
+      
       var preview = document.getElementById('selfiePreview');
       if (preview) preview.innerHTML = '<img src="' + capturedSelfieData + '" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">';
       var btn = document.getElementById('btnConfirmLogin');
@@ -560,515 +396,269 @@ function handleSelfieSelect(input) {
 function confirmLoginWithPhoto() {
   var btn = document.getElementById('btnConfirmLogin');
   if (btn) { if (btn._submitting) return; btn._submitting = true; btn.disabled = true; }
-
+  
   showLoader();
   setLoaderText('جاري تسجيل الحضور (عبر POST)...');
   var loc = S.location || {};
-
+  
   // الإرسال عبر POST (لا حدود للحجم)
   callAPI('recordUserLogin', {
-    name:      S.user,
-    email:     S.userEmail,
-    loginTime: S.loginTime || new Date().toISOString(),
-    lat:       loc.lat      || '',
-    lng:       loc.lng      || '',
-    accuracy:  loc.accuracy || '',
-    mapsUrl:   loc.mapsUrl  || '',
-    areaName:  loc.areaName || '',
-    photo:     capturedSelfieData // كود الصورة الكامل يمر بسلام
+    name: S.user, email: S.userEmail, loginTime: new Date().toISOString(),
+    lat: loc.lat || '', lng: loc.lng || '', accuracy: loc.accuracy || '',
+    mapsUrl: loc.mapsUrl || '', areaName: loc.areaName || '',
+    photo: capturedSelfieData // كود الصورة الكامل يمر بسلام
   }, function(err, res) {
     capturedSelfieData = '';
     var modal = document.getElementById('selfieModal');
     if (modal) modal.remove();
-
-    if (!err && res && res.status === 'success') {
-      toast('تم تسجيل الحضور والصورة بنجاح ✅', 'ok');
-    } else {
-      toast('فشل تسجيل الصورة ولكن تم تسجيل الوقت', 'err');
-    }
-    populateAdminDropdown();
+    
+    if (!err && res && res.status === 'success') { toast('تم تسجيل الحضور بنجاح ✅', 'ok'); }
+    else { toast('فشل تسجيل الصورة ولكن تم تسجيل الوقت', 'err'); }
     loadData();
   });
 }
 
-function populateAdminDropdown() {
-  var sel = document.getElementById('adminUserSelect');
-  if (!sel) return;
-  sel.innerHTML = '<option value="__ALL__">— كل أعضاء الفريق —</option>';
-  S.allTeamNames.forEach(function(n) {
-    var o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
-  });
-}
-
-function adminLoadSelected() {
-  var sel = document.getElementById('adminUserSelect');
-  S.ownerViewingUser = (sel.value === '__ALL__') ? null : sel.value;
-  loadData();
-}
-
-var _allLoginLogs = [];
-
-function openAdminDashboardModal() {
-  document.getElementById('adminDashboardModal').classList.add('on');
-  // التحقق عبر GET
-  callAPI('getAdminAnalytics', { email: S.userEmail }, function(err, data) {
-    if (err || !data) return;
-
-    document.getElementById('dashKpiTotal').textContent     = data.kpis.total;
-    document.getElementById('dashKpiPending').textContent   = data.kpis.pending;
-    document.getElementById('dashKpiCompleted').textContent = data.kpis.completed;
-    document.getElementById('dashKpiRate').textContent      = data.kpis.completionRate + '%';
-
-    var teamBody = document.getElementById('dashTeamBody'); teamBody.innerHTML = '';
-    for (var champ in data.teamStats) {
-      var st = data.teamStats[champ]; var tot = st.pending + st.completed;
-      var rate = tot > 0 ? Math.round((st.completed / tot) * 100) : 0;
-      teamBody.innerHTML += '<tr><td><b>' + esc(champ) + '</b></td><td>' + st.pending + '</td><td>' + st.completed + '</td><td><b>' + rate + '%</b></td></tr>';
-    }
-
-    var auditBody = document.getElementById('dashAuditBody'); auditBody.innerHTML = '';
-    (data.recentAuditLogs || []).forEach(function(log) {
-      auditBody.innerHTML += '<tr><td>' + log.feedbackDate + '</td><td><b>' + esc(log.champ) + '</b></td><td>#' + esc(log.orderId) + '</td><td>' + esc(log.actionType) + '</td></tr>';
-    });
-
-    _allLoginLogs = data.loginLogs || [];
-    var empSel = document.getElementById('attFilterEmp');
-    var seen = {};
-    empSel.innerHTML = '<option value="">— كل الموظفين —</option>';
-    _allLoginLogs.forEach(function(l) {
-      if (l.name && !seen[l.name]) {
-        seen[l.name] = true;
-        var o = document.createElement('option'); o.value = l.name; o.textContent = l.name; empSel.appendChild(o);
-      }
-    });
-
-    renderAttendance();
-  });
-}
-
-function renderAttendance() {
-  var filterDate = document.getElementById('attFilterDate').value;
-  var filterEmp  = document.getElementById('attFilterEmp').value;
-  var grid       = document.getElementById('attGrid');
-  grid.innerHTML = '';
-
-  var filtered = _allLoginLogs.filter(function(l) {
-    if (filterEmp  && l.name !== filterEmp) return false;
-    if (filterDate && l.loginTime.indexOf(filterDate) !== 0) return false;
-    return true;
-  });
-
-  if (!filtered.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-2);font-size:13px;">لا توجد سجلات بهذه الفلاتر</div>';
-    return;
-  }
-
-  filtered.forEach(function(l) {
-    // عرض الصورة مباشرة من الـ Base64 المخزن في الخلية
-    var photoHtml = (l.photo && l.photo.indexOf('data:image') === 0)
-      ? '<img src="' + esc(l.photo) + '" class="att-photo-ph" style="border:2.5px solid var(--primary);object-fit:cover;">'
-      : '<div class="att-photo-ph">👤</div>';
-
-    var locLabel = l.areaName ? esc(l.areaName) : 'عرض الموقع';
-    var locHtml = l.mapsUrl
-      ? '<a href="' + esc(l.mapsUrl) + '" target="_blank" style="color:var(--primary);font-weight:800;text-decoration:none;">📍 ' + locLabel + '</a>' +
-          (l.accuracy ? ' <span style="font-size:10px;color:var(--text-2);">(±' + esc(l.accuracy) + 'm)</span>' : '')
-      : '<span style="color:#94A3B8;">📍 موقع غير مسجّل</span>';
-
-    var total = (l.completed || 0) + (l.pending || 0);
-
-    var card = document.createElement('div');
-    card.className = 'att-card';
-    card.innerHTML =
-      photoHtml +
-      '<div class="att-info">' +
-        '<div class="att-name">' + esc(l.name) + '</div>' +
-        '<div class="att-row">⏰ <strong>وصل:</strong> ' + esc(l.loginTime || '—') + '</div>' +
-        '<div class="att-row">📸 <strong>سيلفي:</strong> ' + esc(l.selfieTime || '—') + '</div>' +
-        '<div class="att-row">' + locHtml + '</div>' +
-        '<div class="att-row">📦 منتجات مكتملة: <span class="att-badge">' + (l.completed || 0) + ' / ' + total + '</span></div>' +
-      '</div>';
-    grid.appendChild(card);
-  });
-}
-
-function closeAdminDashboardModal() {
-  document.getElementById('adminDashboardModal').classList.remove('on');
-}
-
 function loadData() {
-  showLoader();
-  setLoaderText('جاري قراءة البيانات...');
-  var action  = S.isOwner ? 'getOwnerData'  : 'getUserData';
-  var payload = S.isOwner ? { filterName: S.ownerViewingUser } : { user: S.user };
-
-  // القراءة عبر GET
+  showLoader(); setLoaderText('جاري تحميل البيانات...');
+  var action  = S.isOwner ? 'getOwnerData' : 'getUserData';
+  var payload = S.isOwner ? null : { user: S.user };
+  
+  // التحقق عبر GET (سريع ومصلح)
   callAPI(action, payload, function(err, res) {
     hideLoader();
-    if (err || !res) { toast('فشل التحميل – تحقق من الاتصال', 'err'); return; }
-    _onDataLoaded(res);
+    if (err || !res) { toast('فشل تحميل البيانات – تحقق من الاتصال', 'err'); return; }
+    
+    S.all = res.issues || [];
+    S.batchSelections = {};
+    updateCascadingFilters();
+    applyFilters();
+    
+    hide('loginScreen');
+    document.getElementById('appScreen').classList.add('on');
+    document.getElementById('headerName').textContent = S.user;
+    if (S.isOwner) { document.getElementById('btnDashTrigger').style.display = 'inline-block'; }
+    toast(S.all.length ? 'تم تحميل ' + S.all.length + ' عنصر 📋' : 'لا توجد عناصر معلقة 🎉', 'inf');
   });
-}
-
-function _onDataLoaded(res) {
-  S.all = res.issues || [];
-  S.batchSelections = {};
-  updateCascadingFilters();
-  applyFilters();
-
-  hide('loginScreen');
-  document.getElementById('appScreen').classList.add('on');
-
-  var label = S.user;
-  if (S.isOwner && S.ownerViewingUser)  label = '👁️ ' + S.ownerViewingUser;
-  if (S.isOwner && !S.ownerViewingUser) label = 'كل الفريق';
-  document.getElementById('headerName').textContent = label;
-
-  if (S.isOwner) {
-    document.getElementById('adminFilterBar').classList.add('show');
-    document.getElementById('btnDashTrigger').style.display = 'inline-block';
-    document.getElementById('adminUserSelect').value = S.ownerViewingUser || '__ALL__';
-  } else {
-    document.getElementById('adminFilterBar').classList.remove('show');
-    document.getElementById('btnDashTrigger').style.display = 'none';
-  }
-
-  toast(S.all.length ? 'تم تحميل ' + S.all.length + ' عنصر 📋' : 'لا توجد عناصر معلقة 🎉', 'inf');
 }
 
 function refreshData() { loadData(); }
 
 function updateCascadingFilters() {
-  var selV = document.getElementById('fVendor').value;
-  var selB = document.getElementById('fBranch').value;
-  var selC = document.getElementById('fChainName').value;
-  var selI = document.getElementById('fChainId').value;
-
-  var subset = S.all.filter(function(i) {
-    if (selV && i.vendorName !== selV)               return false;
-    if (selB && String(i.branchId) !== String(selB)) return false;
-    if (selC && i.chainName  !== selC)               return false;
-    if (selI && String(i.chainId) !== String(selI))  return false;
-    return true;
+  var vendors = {}, branchIds = {};
+  S.all.forEach(function(i) {
+    if (i.vendorName) vendors[i.vendorName] = true;
+    if (i.branchId) branchIds[i.branchId] = true;
   });
-
-  var vendors = {}, branchIds = {}, chainNames = {}, chainIds = {};
-  subset.forEach(function(i) {
-    if (i.vendorName) vendors[i.vendorName]     = true;
-    if (i.branchId)   branchIds[i.branchId]     = true;
-    if (i.chainName)  chainNames[i.chainName]   = true;
-    if (i.chainId)    chainIds[i.chainId]       = true;
-  });
-
-  rebuildSelect('fVendor',    'كل الفروع',     Object.keys(vendors).sort(),    selV);
-  rebuildSelect('fBranch',    'كل Vendor ID',  Object.keys(branchIds).sort(),  selB);
-  rebuildSelect('fChainName', 'كل Chain Name', Object.keys(chainNames).sort(), selC);
-  rebuildSelect('fChainId',   'كل Chain ID',   Object.keys(chainIds).sort(),   selI);
+  
+  rebuildSelect('fVendor', 'كل الفروع', Object.keys(vendors).sort());
+  rebuildSelect('fBranch', 'كل IDs', Object.keys(branchIds).sort());
 }
 
-function rebuildSelect(id, placeholder, opts, selected) {
+function rebuildSelect(id, placeholder, opts) {
   var sel = document.getElementById(id);
   sel.innerHTML = '<option value="">' + placeholder + '</option>';
-  opts.forEach(function(v) {
-    var o = document.createElement('option');
-    o.value = v; o.textContent = v;
-    if (v === selected) o.selected = true;
-    sel.appendChild(o);
-  });
+  opts.forEach(function(v) { sel.insertAdjacentHTML('beforeend', '<option value="' + v + '">' + v + '</option>'); });
 }
 
 function applyFilters() {
-  updateCascadingFilters();
-  var vendor    = document.getElementById('fVendor').value;
-  var branch    = document.getElementById('fBranch').value;
-  var chainName = document.getElementById('fChainName').value;
-  var chainId   = document.getElementById('fChainId').value;
-
+  var vendor = document.getElementById('fVendor').value;
+  var branch = document.getElementById('fBranch').value;
   S.filtered = S.all.filter(function(i) {
-    if (vendor    && i.vendorName !== vendor)               return false;
-    if (branch    && String(i.branchId) !== String(branch)) return false;
-    if (chainName && i.chainName  !== chainName)            return false;
-    if (chainId   && String(i.chainId) !== String(chainId)) return false;
+    if (vendor && i.vendorName !== vendor) return false;
+    if (branch && String(i.branchId) !== String(branch)) return false;
     return true;
   });
   renderItems();
-  updateBatchBarState();
 }
 
 function clearFilters() {
-  ['fVendor','fBranch','fChainName','fChainId'].forEach(function(id) { document.getElementById(id).value = ''; });
+  document.getElementById('fVendor').value = ''; document.getElementById('fBranch').value = '';
   applyFilters();
 }
 
 function renderItems() {
-  var list  = document.getElementById('itemsList');
+  var list = document.getElementById('itemsList');
   var empty = document.getElementById('emptyState');
   list.innerHTML = '';
-  if (!S.filtered.length) { empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  S.filtered.forEach(function(issue) { list.appendChild(buildCard(issue)); });
+  if (!S.filtered.length) { empty.style.display = 'block'; }
+  else { empty.style.display = 'none'; S.filtered.forEach(function(iss) { list.appendChild(buildCard(iss)); }); }
+  updateBatchBarState();
 }
 
 function buildCard(iss) {
-  var k   = cKey(iss);
+  var k = cKey(iss); var sel = S.batchSelections[k];
   var div = document.createElement('div'); div.className = 'icard'; div.id = 'icard_' + k;
-  var pelicanClass = iss.pelicanStatus
-    ? (iss.pelicanStatus.toLowerCase().indexOf('not_found') !== -1 ? 'p-not-found' : 'p-active')
-    : '';
-
-  div.innerHTML =
-    '<div class="ch">' +
-      '<span class="ch-date">📅 ' + (iss.orderDate || '—') + '</span>' +
-      '<span class="ch-badge ' + pelicanClass + '">' + esc(iss.pelicanStatus || 'N/A') + '</span>' +
-    '</div>' +
-    '<div class="cb">' +
-      '<div class="cb-info">' +
-        '<div class="cb-item-name">🏷️ ' + esc(iss.itemName || '—') + '</div>' +
-        '<div class="cb-sku">SKU: ' + esc(iss.itemSku || '—') + '</div>' +
-        '<div style="font-size:11px; font-weight:800; margin-bottom:4px;">🏪 ' + esc(iss.vendorName || '—') + '</div>' +
-        '<div style="font-size:10px; color:var(--text-2); display:flex; flex-direction:column; gap:2px;">' +
-          '<div>🔖 فرع: <strong>' + esc(String(iss.branchId || '—')) + '</strong></div>' +
-          '<div>📦 طلب: <strong>#' + esc(iss.orderId || '—') + '</strong></div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="cb-img-col">' + renderImageTag(iss.imageUrl) + '</div>' +
-      '<div class="cb-actions">' +
-        abt('t-oos',     '✅', 'رصيد السيستم = الرصيد الفعلي', k, 'SYSTEM_EQUAL') +
-        abt('t-sub',     '⚠️', 'رصيد الفعلي ≠ السيستم',        k, 'SYSTEM_DIFF')  +
-        abt('t-del',     '✏️', 'تعديل اسم المنتج',              k, 'EDIT_NAME')    +
-        abt('t-barcode', '🔢', 'تعديل الباركود',                k, 'EDIT_BARCODE') +
-        abt('t-sku',     '🔑', 'تعديل الـ SKU',                  k, 'EDIT_SKU')     +
-        abt('t-img',     '📷', 'صورة',                          k, 'IMAGE_ISSUE')  +
-        abt('t-note',    '📝', 'ملاحظة',                        k, 'OTHER')        +
-      '</div>' +
-    '</div>' +
-    '<div class="aip" id="aip_' + k + '"></div>';
-
+  var chp = 'p-active';
+  div.innerHTML = '<div class="ch"><span class="ch-date">📅 ' + iss.orderDate + '</span><span class="ch-badge ' + chp + '">' + esc(iss.pelicanStatus) + '</span></div><div class="cb"><div class="cb-info"><div class="cb-item-name">' + esc(iss.itemName) + '</div><div class="cb-sku">SKU: ' + iss.itemSku + '</div><div style="font-size:11px;font-weight:700;margin-bottom:2px;">' + esc(iss.vendorName) + ' (ID: ' + iss.branchId + ')</div><div style="font-size:11px;color:var(--text-2);">Order #' + iss.orderId + '</div></div><div class="cb-img-col">' + renderImageTag(iss.imageUrl) + '</div><div class="cb-actions">' + abt('t-oos', '✅', 'رصيد السيستم = الرصيد الفعلي', k, 'SYSTEM_EQUAL') + abt('t-sub', '⚠️', 'رصيد الفعلي ≠ السيستم', k, 'SYSTEM_DIFF') + abt('t-barcode', '🔢', 'تعديل الباركود', k, 'EDIT_BARCODE') + abt('t-sku', '🔑', 'تعديل الـ SKU', k, 'EDIT_SKU') + abt('t-del', '✏️', 'تعديل اسم المنتج', k, 'EDIT_NAME') + abt('t-img', '📷', 'صورة', k, 'IMAGE_ISSUE') + abt('t-note', '📝', 'ملاحظة', k, 'OTHER') + '</div></div><div class="aip" id="aip_' + k + '"></div>';
+  
+  if (sel) {
+    div.style.borderColor = 'var(--primary)';
+    renderCardInputs(k);
+    Object.keys(sel.actions).forEach(function(type) {
+      var btn = div.querySelector('#abt_' + k + '_' + type); if (btn) btn.classList.add('sel');
+    });
+  }
   return div;
 }
 
 function abt(cls, icon, label, k, type) {
-  return '<button class="abt ' + cls + '" id="abt_' + k + '_' + type + '" ' +
-    'onclick="toggleAction(\'' + k + '\',\'' + type + '\')">' +
-    '<span><span style="font-size:13px; margin-left:4px;">' + icon + '</span>' + label + '</span>' +
-    '<span id="chk_' + k + '_' + type + '" style="font-weight:900;"></span></button>';
+  return '<button class="abt ' + cls + '" id="abt_' + k + '_' + type + '" onclick="toggleAction(\'' + k + '\',\'' + type + '\')"><span>' + icon + ' ' + label + '</span><span id="chk_' + k + '_' + type + '" style="font-weight:900;"></span></button>';
 }
 
 function toggleAction(k, type) {
-  if (!S.batchSelections[k]) {
-    S.batchSelections[k] = {
-      issueData: S.filtered.find(function(i) { return cKey(i) === k; }),
-      actions: {}
-    };
-  }
-  var actions = S.batchSelections[k].actions;
-  var btn = document.getElementById('abt_' + k + '_' + type);
-  var chk = document.getElementById('chk_' + k + '_' + type);
-
-  if (actions[type]) {
-    delete actions[type];
-    if (btn) btn.classList.remove('sel');
-    if (chk) chk.textContent = '';
-  } else {
-    actions[type] = { value: '' };
-    if (btn) btn.classList.add('sel');
-    if (chk) chk.textContent = '✓';
-  }
-
-  renderCardInputs(k);
   var card = document.getElementById('icard_' + k);
-  if (Object.keys(actions).length === 0) {
-    delete S.batchSelections[k];
-    if (card) card.style.borderColor = 'transparent';
-  } else {
-    if (card) card.style.borderColor = 'var(--success)';
-  }
+  if (!S.batchSelections[k]) { S.batchSelections[k] = { issueData: S.filtered.find(function(i) { return cKey(i) === k; }), actions: {} }; }
+  var actions = S.batchSelections[k].actions;
+  var btn = card.querySelector('#abt_' + k + '_' + type);
+  
+  if (actions[type]) { delete actions[type]; btn.classList.remove('sel'); }
+  else { actions[type] = { value: '' }; btn.classList.add('sel'); }
+  
+  renderCardInputs(k);
+  if (Object.keys(actions).length === 0) { delete S.batchSelections[k]; card.style.borderColor = 'transparent'; }
+  else { card.style.borderColor = 'var(--primary)'; }
   updateBatchBarState();
 }
 
 function renderCardInputs(k) {
   var panel = document.getElementById('aip_' + k);
-  if (!panel || !S.batchSelections[k]) {
-    if (panel) { panel.innerHTML = ''; panel.classList.remove('show'); }
-    return;
-  }
-  var actions = S.batchSelections[k].actions;
-  var keys = Object.keys(actions);
-  if (!keys.length) { panel.innerHTML = ''; panel.classList.remove('show'); return; }
-
-  var placeholders = { EDIT_NAME: 'أدخل الاسم الصحيح...', EDIT_BARCODE: 'أدخل الباركود الصحيح...', EDIT_SKU: 'أدخل SKU الصحيح...', OTHER: 'أدخل الملاحظة...' };
-  var html = '';
-  keys.forEach(function(type) {
-    if (type === 'SYSTEM_EQUAL' || type === 'SYSTEM_DIFF' || type === 'IMAGE_ISSUE') {
-      html += '<div style="margin-bottom:8px; background:white; padding:8px; border-radius:6px; border:1px solid var(--border);">' +
-        '<div style="font-size:11px; font-weight:800; margin-bottom:4px; color:var(--primary);">📷 التقاط صورة (إجباري):</div>' +
-        '<input type="file" accept="image/*" capture="environment" style="font-size:11px;" onchange="onCameraCapture(this,\'' + k + '\',\'' + type + '\')">' +
-        '</div>';
-    } else {
-      html += '<input type="text" style="width:100%; padding:6px; margin-bottom:6px; border:1px solid var(--border); border-radius:4px; font-size:11px;" ' +
-        'placeholder="' + (placeholders[type] || '') + '" oninput="onInputValue(\'' + k + '\',\'' + type + '\', this.value)">';
-    }
-  });
-  panel.innerHTML = html;
-  panel.classList.add('show');
+  if (!panel) return;
+  var sel = S.batchSelections[k];
+  if (!sel || Object.keys(sel.actions).length === 0) { panel.innerHTML = ''; panel.classList.remove('show'); return; }
+  
+  panel.innerHTML = ''; var hasInputs = false;
+  var actions = sel.actions;
+  
+  if (actions.SYSTEM_EQUAL) { hasInputs = true; panel.insertAdjacentHTML('beforeend', '<div style="margin-bottom:8px;padding:8px;background:white;border-radius:4px;"><label style="display:block;font-size:11px;font-weight:700;margin-bottom:4px;color:var(--primary);">📷 التقاط صورة لإثبات الرصيد الصحيح (إجباري):</label><input type="file" accept="image/*" capture="environment" onchange="onCameraCapture(this,\'' + k + '\',\'SYSTEM_EQUAL\')"></div>'); }
+  if (actions.EDIT_BARCODE) { hasInputs = true; panel.insertAdjacentHTML('beforeend', '<input type="text" style="width:100%;padding:6px;margin-bottom:6px;" placeholder="أدخل الباركود الصحيح..." oninput="onInputValue(\'' + k + '\',\'EDIT_BARCODE\', this.value)">'); }
+  if (actions.EDIT_SKU) { hasInputs = true; panel.insertAdjacentHTML('beforeend', '<input type="text" style="width:100%;padding:6px;margin-bottom:6px;" placeholder="أدخل الـ SKU الصحيح..." oninput="onInputValue(\'' + k + '\',\'EDIT_SKU\', this.value)">'); }
+  if (actions.EDIT_NAME) { hasInputs = true; panel.insertAdjacentHTML('beforeend', '<input type="text" style="width:100%;padding:6px;margin-bottom:6px;" placeholder="أدخل الاسم الصحيح..." oninput="onInputValue(\'' + k + '\',\'EDIT_NAME\', this.value)">'); }
+  if (actions.OTHER) { hasInputs = true; panel.insertAdjacentHTML('beforeend', '<input type="text" style="width:100%;padding:6px;" placeholder="أدخل الملاحظة..." oninput="onInputValue(\'' + k + '\',\'OTHER\', this.value)">'); }
+  
+  if (hasInputs) panel.classList.add('show'); else panel.classList.remove('show');
 }
 
 function onCameraCapture(input, k, type) {
   var file = input.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    if (S.batchSelections[k] && S.batchSelections[k].actions[type])
-      S.batchSelections[k].actions[type].value = e.target.result; // Base64 الكامل
-    updateBatchBarState();
+    if (S.batchSelections[k] && S.batchSelections[k].actions[type]) {
+      S.batchSelections[k].actions[type].value = e.target.result;
+      updateBatchBarState();
+    }
   };
   reader.readAsDataURL(file);
 }
 
 function onInputValue(k, type, val) {
-  if (S.batchSelections[k] && S.batchSelections[k].actions[type])
+  if (S.batchSelections[k] && S.batchSelections[k].actions[type]) {
     S.batchSelections[k].actions[type].value = val.trim();
-  updateBatchBarState();
+    updateBatchBarState();
+  }
 }
 
 function updateBatchBarState() {
   var total = S.filtered.length, completed = 0;
   S.filtered.forEach(function(iss) {
-    var k = cKey(iss); var sel = S.batchSelections[k];
+    var sel = S.batchSelections[cKey(iss)];
     if (sel && Object.keys(sel.actions).length > 0) {
-      var allValid = true;
-      for (var act in sel.actions) {
-        if ((act === 'SYSTEM_EQUAL' || act === 'SYSTEM_DIFF' || act === 'IMAGE_ISSUE') && !sel.actions[act].value)
-          allValid = false;
-      }
-      if (allValid) completed++;
+      var ok = true;
+      if (sel.actions.SYSTEM_EQUAL && !sel.actions.SYSTEM_EQUAL.value) ok = false;
+      if (sel.actions.EDIT_BARCODE && !sel.actions.EDIT_BARCODE.value) ok = false;
+      if (sel.actions.EDIT_SKU && !sel.actions.EDIT_SKU.value) ok = false;
+      if (sel.actions.EDIT_NAME && !sel.actions.EDIT_NAME.value) ok = false;
+      if (ok) completed++;
     }
   });
-  var remaining = total - completed;
-  document.getElementById('summaryTotalCount').textContent     = total;
-  document.getElementById('summaryUpdatedCount').textContent   = completed;
-  document.getElementById('summaryRemainingCount').textContent = remaining;
-  document.getElementById('batchTotalCount').textContent       = total;
-  document.getElementById('batchCompletedCount').textContent   = completed;
-
-  var tag = document.getElementById('branchStatusTag');
-  if (total > 0 && completed === total) { tag.textContent = 'DONE ✅'; tag.classList.add('is-done'); }
-  else { tag.textContent = 'PENDING ⏳'; tag.classList.remove('is-done'); }
-
+  document.getElementById('summaryTotalCount').textContent = total;
+  document.getElementById('summaryUpdatedCount').textContent = completed;
+  document.getElementById('batchTotalCount').textContent = total;
+  document.getElementById('batchCompletedCount').textContent = completed;
+  var statusTag = document.getElementById('branchStatusTag');
+  if (total > 0 && completed === total) { statusTag.textContent = 'DONE ✅'; statusTag.classList.add('is-done'); }
+  else { statusTag.textContent = 'PENDING ⏳'; statusTag.classList.remove('is-done'); }
   document.getElementById('btnBatchSubmit').disabled = (completed < total || total === 0);
 }
 
 function submitBatchTasks() {
-  var payload = [], missingCamera = false;
+  var payload = [], missingSystemPhoto = false;
+  var totalToSubmit = 0;
   S.filtered.forEach(function(iss) {
     var k = cKey(iss); var sel = S.batchSelections[k];
-    if (sel) {
-      for (var actType in sel.actions) {
-        var actObj = sel.actions[actType];
-        if ((actType === 'SYSTEM_EQUAL' || actType === 'SYSTEM_DIFF' || actType === 'IMAGE_ISSUE') && !actObj.value)
-          missingCamera = true;
-        // القيمة المرسلة هي Base64 الكامل للصورة أو النص
-        payload.push({ issueData: iss, actionType: actType, actionValue: actObj.value || '' });
+    if (sel && Object.keys(sel.actions).length > 0) {
+      totalToSubmit++;
+      if (sel.actions.SYSTEM_EQUAL && !sel.actions.SYSTEM_EQUAL.value) missingSystemPhoto = true;
+      for (var type in sel.actions) {
+        payload.push({ issueData: iss, actionType: type, actionValue: sel.actions[type].value || '' });
       }
     }
   });
-
-  if (missingCamera) { toast('يلزم التقاط صورة لخيارات الرصيد والصورة', 'err'); return; }
-  if (payload.length < S.filtered.length) { toast('يجب تحديد الفيدباك لكل الكروت أولاً', 'err'); return; }
-
-  showLoader();
-  setLoaderText('جاري إرسال الفيدباك المجمع عبر POST...');
+  
+  if (totalToSubmit < S.filtered.length) { toast('يجب تحديد الفيدباك لكل الكروت أولاً', 'err'); return; }
+  if (missingSystemPhoto) { toast('يلزم التقاط صورة لإثبات الرصيد الصحيح', 'err'); return; }
+  
+  showLoader(); setLoaderText('جاري إرسال الفيدباك (عبر POST)...');
+  
   // الإرسال عبر POST
   callAPI('submitBatchFeedback', { items: payload }, function(err, res) {
     hideLoader();
     if (res && res.status === 'success') {
-      toast('🎉 تم إرسال جميع الفيدباك بنجاح!', 'ok');
-      if (!S.isOwner) showSummaryForm(payload.length);
+      toast('🎉 تم إرسال الفيدباك بنجاح!', 'ok');
+      if (!S.isOwner) showSummaryForm(totalToSubmit);
       else loadData();
     } else { toast('حدث خطأ أثناء الإرسال', 'err'); }
   });
 }
 
 function showSummaryForm(count) {
-  var html =
-    '<div class="sf-overlay" id="sfOverlay">' +
-      '<div class="sf-box">' +
-        '<div style="text-align:center; margin-bottom:20px;">' +
-          '<div style="font-size:40px;">📋</div>' +
-          '<h3 style="font-weight:900; font-size:16px; margin:8px 0 4px;">ملخص زيارة الفرع</h3>' +
-          '<p style="font-size:11px; color:var(--text-2);">تم إرسال <strong>' + count + '</strong> منتج · أكمل بيانات الزيارة</p>' +
-        '</div>' +
-        '<div class="sf-field"><label class="sf-label">Menu Management Up-to-dateness</label>' +
-          '<select id="sf_menu" class="sf-input"><option value="Yes ✅">Yes ✅</option><option value="No ❌">No ❌</option><option value="Partial ⚠️">Partial ⚠️</option></select></div>' +
-        '<div class="sf-field"><label class="sf-label">Visit Objective</label>' +
-          '<textarea id="sf_visit" class="sf-input" rows="2" placeholder="هدف الزيارة..."></textarea></div>' +
-        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' +
-          '<div class="sf-field"><label class="sf-label">Employees Per Shift</label>' +
-            '<input type="number" id="sf_emp" class="sf-input" placeholder="0" min="0"></div>' +
-          '<div class="sf-field"><label class="sf-label">Riders Per Shift</label>' +
-            '<input type="number" id="sf_rider" class="sf-input" placeholder="0" min="0"></div>' +
-        '</div>' +
-        '<div class="sf-field"><label class="sf-label">Actions Plan</label>' +
-          '<textarea id="sf_actions" class="sf-input" rows="2" placeholder="خطة الإجراءات..."></textarea></div>' +
-        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' +
-          '<div class="sf-field"><label class="sf-label">Order ID</label>' +
-            '<input type="text" id="sf_order" class="sf-input" placeholder="رقم الطلب"></div>' +
-          '<div class="sf-field"><label class="sf-label">Vendor Issue</label>' +
-            '<input type="text" id="sf_vendor" class="sf-input" placeholder="مشكلة الفيندور"></div>' +
-        '</div>' +
-        '<button onclick="submitSummaryForm()" style="width:100%; padding:13px; background:var(--primary); color:white; border:none; border-radius:var(--r-sm); font-family:Cairo; font-size:14px; font-weight:900; cursor:pointer; margin-top:6px;">إرسال الملخص وإنهاء الجلسة ✓</button>' +
-      '</div>' +
-    '</div>';
+  var html = '<div class="sf-overlay" id="sfOverlay"><div class="sf-box"><div style="text-align:center; margin-bottom:20px;"><div style="font-size:40px;">📋</div><h3 style="font-weight:900; font-size:16px; margin:8px 0 4px;">ملخص زيارة الفرع</h3><p style="font-size:11px; color:var(--text-2);">تم إرسال <strong>' + count + '</strong> منتج · أكمل بيانات الزيارة</p></div><div class="sf-field"><label class="sf-label">Menu Management Up-to-dateness</label><select id="sf_menu" class="sf-input"><option value="Yes ✅">Yes ✅</option><option value="No ❌">No ❌</option><option value="Partial ⚠️">Partial ⚠️</option></select></div><div class="sf-field"><label class="sf-label">Visit Objective</label><textarea id="sf_visit" class="sf-input" rows="2" placeholder="هدف الزيارة..."></textarea></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div class="sf-field"><label class="sf-label">Employees Per Shift</label><input type="number" id="sf_emp" class="sf-input" placeholder="0"></div><div class="sf-field"><label class="sf-label">Riders Per Shift</label><input type="number" id="sf_rider" class="sf-input" placeholder="0"></div></div><div class="sf-field"><label class="sf-label">Actions Plan</label><textarea id="sf_actions" class="sf-input" rows="2" placeholder="خطة الإجراءات..."></textarea></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div class="sf-field"><label class="sf-label">Order ID</label><input type="text" id="sf_order" class="sf-input" placeholder="رقم الطلب"></div><div class="sf-field"><label class="sf-label">Vendor Issue</label><input type="text" id="sf_vendor" class="sf-input" placeholder="مشكلة الفيندور"></div></div><button onclick="submitSummaryForm()" style="width:100%; padding:13px; background:var(--primary); color:white; border:none; border-radius:var(--r-sm); font-family:Cairo; font-size:14px; font-weight:900; cursor:pointer; margin-top:6px;">إرسال الملخص وإنهاء الجلسة ✓</button></div></div>';
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
 function submitSummaryForm() {
-  var data = {
-    name:           S.user,
-    email:          S.userEmail,
-    menuManagement: document.getElementById('sf_menu').value,
-    visitObjective: document.getElementById('sf_visit').value.trim(),
-    empPerShift:    document.getElementById('sf_emp').value,
-    riderPerShift:  document.getElementById('sf_rider').value,
-    actionsplan:    document.getElementById('sf_actions').value.trim(),
-    orderId:        document.getElementById('sf_order').value.trim(),
-    vendorIssue:    document.getElementById('sf_vendor').value.trim()
-  };
-  showLoader(); setLoaderText('جاري حفظ ملخص الزيارة عبر POST...');
+  var data = { name: S.user, email: S.userEmail, menuManagement: document.getElementById('sf_menu').value, visitObjective: document.getElementById('sf_visit').value.trim(), empPerShift: document.getElementById('sf_emp').value, riderPerShift: document.getElementById('sf_rider').value, actionsplan: document.getElementById('sf_actions').value.trim(), orderId: document.getElementById('sf_order').value.trim(), vendorIssue: document.getElementById('sf_vendor').value.trim() };
+  showLoader(); setLoaderText('جاري إرسال الملخص (عبر POST)...');
+  
   // الإرسال عبر POST
   callAPI('submitBranchSummary', data, function() {
     hideLoader();
-    var ov = document.getElementById('sfOverlay');
-    if (ov) ov.remove();
-    toast('تم حفظ ملخص الزيارة بنجاح ✅', 'ok');
+    if (document.getElementById('sfOverlay')) document.getElementById('sfOverlay').remove();
+    toast('تم حفظ الملخص وإنهاء الجلسة ✅', 'ok');
     loadData();
   });
 }
 
 function doLogout() { clearCache(); location.reload(); }
 function cKey(iss) { return (iss.orderId + '_' + iss.itemSku).replace(/[^a-zA-Z0-9_]/g, '_'); }
-function esc(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function toast(msg, type) {
-  var wrap = document.getElementById('toastWrap'); var t = document.createElement('div');
-  t.className = 'toast ' + (type || 'inf'); t.textContent = msg; wrap.appendChild(t);
-  setTimeout(function() { t.remove(); }, 3200);
-}
+function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg, type) { var wrap = document.getElementById('toastWrap'); var t = document.createElement('div'); t.className = 'toast ' + (type || 'inf'); t.textContent = msg; wrap.appendChild(t); setTimeout(function() { t.remove(); }, 3200); }
 function show(id) { document.getElementById(id).style.display = 'flex'; }
 function hide(id) { document.getElementById(id).style.display = 'none'; }
 function showLoader() { document.getElementById('globalLoader').style.display = 'flex'; }
 function hideLoader() { document.getElementById('globalLoader').style.display = 'none'; }
-function setLoaderText(t) { document.getElementById('loaderText').textContent = t; }
+function setLoaderText(t) { document.getElementById('globalLoader').querySelector('div:last-child').textContent = t; }
 
-function renderImageTag(rawUrl) {
-  if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim()) return '<div style="font-size:36px; opacity:0.3;">📦</div>';
-  var url = rawUrl.trim();
-  if (url.indexOf('http') !== 0) return '<div style="font-size:36px; opacity:0.3;">📦</div>';
-  var p1 = 'https://images.weserv.nl/?url=' + encodeURIComponent(url);
-  var p2 = 'https://wsrv.nl/?url='          + encodeURIComponent(url);
-  return '<img src="' + esc(url) + '" class="center-product-img" referrerpolicy="no-referrer" crossorigin="anonymous" ' +
-    'onerror="this.onerror=null; this.src=\'' + esc(p1) + '\'; this.onerror=function(){ this.onerror=null; this.src=\'' + esc(p2) + '\'; this.onerror=function(){ this.parentElement.innerHTML=\'<div style=\\&quot;font-size:36px; opacity:0.3;\\&quot;>📦</div>\'; }; };">';
+function renderImageTag(rawUrl) { if (!rawUrl || rawUrl.indexOf('http') !== 0) return '<div style="font-size:36px;opacity:0.2;">📦</div>'; var p1 = 'https://images.weserv.nl/?url=' + encodeURIComponent(rawUrl); var p2 = 'https://wsrv.nl/?url=' + encodeURIComponent(rawUrl); return '<img src="' + esc(rawUrl) + '" class="center-product-img" referrerpolicy="no-referrer" crossorigin="anonymous" onerror="this.onerror=null; this.src=\'' + esc(p1) + '\'; this.onerror=function(){ this.onerror=null; this.src=\'' + esc(p2) + '\'; this.onerror=function(){ this.parentElement.innerHTML=\'<div style=\\&quot;font-size:36px;opacity:0.2;\\&quot;>📦</div>\'; }; };">'; }
+
+function openAdminDashboardModal() {
+  document.getElementById('adminDashboardModal').classList.add('on');
+  // التحقق عبر GET (سريع ومصلح)
+  callAPI('getAdminAnalytics', null, function(err, data) {
+    if (err || !data) return;
+    document.getElementById('dashKpiTotal').textContent = data.kpis.total;
+    document.getElementById('dashKpiPending').textContent = data.kpis.pending;
+    document.getElementById('dashKpiCompleted').textContent = data.kpis.completed;
+    var aT = document.querySelector('#dashAuditTable tbody'); aT.innerHTML = '';
+    (data.recentAuditLogs || []).forEach(function(l) { aT.insertAdjacentHTML('beforeend', '<tr><td>' + l.feedbackDate + '</td><td style="font-weight:700;">' + esc(l.champ) + '</td><td>' + esc(l.itemName) + '</td><td>' + esc(l.actionType) + '</td></tr>'); });
+    var tT = document.querySelector('#dashTrackerTable tbody'); tT.innerHTML = '';
+    (data.loginLogs || []).forEach(function(l) {
+      var photoH = (l.photo && l.photo.indexOf('data:image') === 0) ? '<img src="' + esc(l.photo) + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' : '—';
+      var mapsH = l.mapsUrl ? '<a href="' + esc(l.mapsUrl) + '" target="_blank" style="color:var(--primary);">📍 خريطة</a>' : '—';
+      tT.insertAdjacentHTML('beforeend', '<tr><td>' + l.loginTime + '</td><td style="font-weight:700;">' + esc(l.name) + '</td><td>' + mapsH + '</td><td>' + photoH + '</td><td><span style="color:var(--success);">' + l.completed + '</span> / <span style="color:var(--error);">' + l.pending + '</span></td></tr>');
+    });
+  });
 }
+function closeAdminDashboardModal() { document.getElementById('adminDashboardModal').classList.remove('on'); }
 </script>
 </body>
 </html>
