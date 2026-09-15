@@ -58,6 +58,7 @@ function callAPI(action, payload, callback) {
     // POST للبيانات الثقيلة (صور + فيدباك كبير)
     fetch(API_URL, {
       method: 'POST',
+      redirect: 'follow',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: action, payload: payload })
     })
@@ -711,13 +712,17 @@ function openAdminDashboardModal() {
       loginBody.innerHTML = '';
       (data.loginLogs || []).forEach(function(l) {
         var imgHtml = (l.photo && l.photo.indexOf('data:image') === 0)
-          ? '<img src="' + l.photo + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--primary);">'
+          ? '<img src="' + l.photo + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">'
+          : '<span style="font-size:18px;opacity:0.35;">👤</span>';
+        var locHtml = (l.mapsUrl && l.mapsUrl.indexOf('http') === 0)
+          ? '<a href="' + esc(l.mapsUrl) + '" target="_blank" style="color:var(--info);font-size:11px;font-weight:800;text-decoration:none;">📍 خريطة</a>'
           : '—';
         loginBody.innerHTML +=
           '<tr style="border-top:1px solid var(--border);">' +
-          '<td style="padding:4px 8px;">' + esc(l.timestamp || '') + '</td>' +
+          '<td style="padding:4px 8px;white-space:nowrap;">' + esc(l.timestamp || '') + '</td>' +
           '<td><strong>' + esc(l.name || '') + '</strong></td>' +
-          '<td>' + imgHtml + '</td></tr>';
+          '<td style="text-align:center;">' + imgHtml + '</td>' +
+          '<td style="text-align:center;">' + locHtml + '</td></tr>';
       });
     }
   });
