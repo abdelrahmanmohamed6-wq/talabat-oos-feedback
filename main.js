@@ -164,46 +164,101 @@ function clearAuthError() {
 }
 function doLogout() { clearCache(); location.reload(); }
 
-// ─── الموقع الجغرافي ──────────────────────────────────────────────────────────
+// ─── الموقع الجغرافي (إجباري — لا دخول بدونه) ────────────────────────────────
 function requestLocationThenSelfie() {
-  if (!navigator.geolocation) { showSelfieModal(); return; }
-  showLoader(); setLoaderText('جاري تحديد موقعك الجغرافي...');
+  if (!navigator.geolocation) {
+    showLocationBlocker('جهازك لا يدعم تحديد الموقع. استخدم Chrome أو Safari وحاول مجدداً.');
+    return;
+  }
+  showLoader(); setLoaderText('📍 جاري تحديد موقعك الجغرافي...');
+  var _locStart = Date.now();
 
   navigator.geolocation.getCurrentPosition(
     function(pos) {
       hideLoader();
+      var elapsed = Date.now() - _locStart;
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
       S.location = {
-        lat:      pos.coords.latitude,
-        lng:      pos.coords.longitude,
-        accuracy: Math.round(pos.coords.accuracy),
-        mapsUrl:  'https://maps.google.com/?q=' + pos.coords.latitude + ',' + pos.coords.longitude
+        lat:       lat,
+        lng:       lng,
+        accuracy:  Math.round(pos.coords.accuracy),
+        mapsUrl:   'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng,
+        elapsedMs: elapsed,
+        areaName:  ''
       };
+      fetchAreaName(lat, lng);
       showSelfieModal();
     },
-    function() {
+    function(err) {
       hideLoader();
-      toast('تعذر تحديد موقعك بدقة 📡', 'inf');
-      showSelfieModal();
+      var msg = (err.code === 1)
+        ? '🔒 رفضت مشاركة الموقع.\n\nالموقع الجغرافي إجباري لتسجيل الحضور. اسمح للمتصفح بالوصول للموقع ثم أعد المحاولة.'
+        : '📡 تعذر تحديد موقعك. تأكد من تفعيل GPS وأن لديك إشارة جيدة، ثم أعد المحاولة.';
+      showLocationBlocker(msg);
     },
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
   );
+}
+
+function showLocationBlocker(msg) {
+  var existing = document.getElementById('locationBlocker');
+  if (existing) existing.remove();
+  var html =
+    '<div id="locationBlocker" style="position:fixed;inset:0;background:rgba(15,23,42,0.97);z-index:10001;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;">' +
+      '<div style="font-size:60px;margin-bottom:16px;">📍</div>' +
+      '<h3 style="color:white;font-size:18px;font-weight:900;margin-bottom:12px;line-height:1.4;">الموقع الجغرافي مطلوب</h3>' +
+      '<p style="color:rgba(255,255,255,0.75);font-size:13px;margin-bottom:28px;max-width:300px;line-height:1.7;white-space:pre-line;">' + msg + '</p>' +
+      '<button onclick="retryLocation()" style="background:#FF6200;color:white;border:none;padding:14px 32px;border-radius:12px;font-family:\'Cairo\';font-size:15px;font-weight:900;cursor:pointer;margin-bottom:12px;width:100%;max-width:280px;">🔄 إعادة المحاولة</button>' +
+      '<button onclick="doLogout()" style="background:transparent;color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.25);padding:10px 20px;border-radius:10px;font-family:\'Cairo\';font-size:13px;cursor:pointer;width:100%;max-width:280px;">← تسجيل خروج</button>' +
+    '</div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function retryLocation() {
+  var el = document.getElementById('locationBlocker');
+  if (el) el.remove();
+  requestLocationThenSelfie();
+}
+
+function fetchAreaName(lat, lng) {
+  fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng, {
+    headers: { 'Accept-Language': 'ar' }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var a = data.address || {};
+    if (S.location) {
+      S.location.areaName = a.suburb || a.neighbourhood || a.city_district || a.city || a.town || a.county || '';
+    }
+  })
+  .catch(function() {});
 }
 
 // ─── مودال السيلفي ────────────────────────────────────────────────────────────
 var _selfieData = '';
 
 function showSelfieModal() {
+  var loc = S.location || {};
+  var locBadge = loc.lat
+    ? '<div style="background:#ECFDF5;border:1.5px solid #10B981;border-radius:8px;padding:8px 14px;margin-bottom:16px;font-size:11px;font-weight:800;color:#065F46;display:flex;align-items:center;gap:6px;justify-content:center;">' +
+      '✅ الموقع محدد · دقة ±' + (loc.accuracy || '—') + 'm' +
+      (loc.areaName ? ' · ' + esc(loc.areaName) : '') +
+      '</div>'
+    : '<div style="background:#FEF2F2;border:1.5px solid #EF4444;border-radius:8px;padding:8px 14px;margin-bottom:16px;font-size:11px;font-weight:800;color:#991B1B;">⚠️ الموقع غير محدد</div>';
+
   var html =
-    '<div id="selfieModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;">' +
+    '<div id="selfieModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;">' +
     '<div style="background:white;border-radius:20px;padding:28px;max-width:380px;width:100%;text-align:center;">' +
     '<div style="font-size:44px;margin-bottom:8px;">📸</div>' +
     '<h3 style="font-size:16px;font-weight:900;margin-bottom:4px;">إثبات الحضور بالصورة</h3>' +
-    '<p style="font-size:12px;color:var(--text-2);margin-bottom:20px;">مرحباً <strong>' + esc(S.user) + '</strong>، التقط صورة سيلفي سريعة لبدء العمل.</p>' +
-    '<input type="file" accept="image/*" capture="user" id="selfieFileInput" style="margin-bottom:14px;font-size:12px;" onchange="handleSelfieSelect(this)">' +
+    '<p style="font-size:12px;color:var(--text-2);margin-bottom:14px;">مرحباً <strong>' + esc(S.user) + '</strong> — التقط سيلفي لتأكيد الحضور.</p>' +
+    locBadge +
+    '<input type="file" accept="image/*" capture="user" id="selfieFileInput" style="margin-bottom:14px;font-size:12px;width:100%;" onchange="handleSelfieSelect(this)">' +
     '<div id="selfiePreview" style="margin-bottom:14px;min-height:10px;"></div>' +
     '<button id="btnConfirmLogin" onclick="confirmLoginWithPhoto()" disabled ' +
-    'style="width:100%;padding:12px;background:var(--primary);color:white;border:none;border-radius:var(--r-sm);font-family:\'Cairo\';font-weight:900;font-size:14px;cursor:pointer;opacity:0.5;">' +
-    'تأكيد الحضور وبدء العمل ←' +
+    'style="width:100%;padding:13px;background:var(--primary);color:white;border:none;border-radius:var(--r-sm);font-family:\'Cairo\';font-weight:900;font-size:14px;cursor:pointer;opacity:0.5;transition:opacity 0.2s;">' +
+    '✅ تأكيد الحضور وبدء العمل' +
     '</button>' +
     '</div></div>';
   document.body.insertAdjacentHTML('beforeend', html);
@@ -245,14 +300,16 @@ function confirmLoginWithPhoto() {
   var loc = S.location || {};
 
   callAPI('recordUserLogin', {
-    name:      S.user,
-    email:     S.userEmail,
-    loginTime: new Date().toISOString(),
-    lat:       loc.lat      || '',
-    lng:       loc.lng      || '',
-    accuracy:  loc.accuracy || '',
-    mapsUrl:   loc.mapsUrl  || '',
-    photo:     _selfieData
+    name:       S.user,
+    email:      S.userEmail,
+    loginTime:  new Date().toISOString(),
+    lat:        loc.lat        || '',
+    lng:        loc.lng        || '',
+    accuracy:   loc.accuracy   || '',
+    mapsUrl:    loc.mapsUrl    || '',
+    areaName:   loc.areaName   || '',
+    locationMs: loc.elapsedMs  || '',
+    photo:      _selfieData
   }, function(err, res) {
     _selfieData = ''; // تفريغ الذاكرة
     var modal = document.getElementById('selfieModal');
@@ -306,7 +363,8 @@ function loadData() {
 
     if (S.isOwner) {
       document.getElementById('adminFilterBar').classList.add('show');
-      document.getElementById('btnDashTrigger').style.display = 'inline-block';
+      document.getElementById('btnDashTrigger').style.display   = 'inline-block';
+      document.getElementById('btnSummaryTrigger').style.display = 'none';
       // ملء dropdown الفريق
       var sel = document.getElementById('adminUserSelect');
       sel.innerHTML = '<option value="__ALL__">— كل أعضاء الفريق —</option>';
@@ -317,7 +375,8 @@ function loadData() {
       if (S.ownerViewingUser) sel.value = S.ownerViewingUser;
     } else {
       document.getElementById('adminFilterBar').classList.remove('show');
-      document.getElementById('btnDashTrigger').style.display = 'none';
+      document.getElementById('btnDashTrigger').style.display   = 'none';
+      document.getElementById('btnSummaryTrigger').style.display = 'inline-block';
     }
 
     toast(S.all.length ? 'تم تحميل ' + S.all.length + ' عنصر 📋' : 'لا توجد نواقص 🎉', 'inf');
@@ -697,12 +756,18 @@ function openAdminDashboardModal() {
     if (auditBody) {
       auditBody.innerHTML = '';
       (data.recentAuditLogs || []).forEach(function(log) {
+        var actionIcons = {
+          SYSTEM_EQUAL: '✅ رصيد مطابق', SYSTEM_DIFF: '⚠️ رصيد مختلف',
+          EDIT_NAME: '✏️ تعديل اسم', EDIT_BARCODE: '🔢 باركود',
+          EDIT_SKU: '🔑 SKU', IMAGE_ISSUE: '📷 صورة', OTHER: '📝 ملاحظة'
+        };
+        var actLabel = actionIcons[log.actionType] || log.actionType || '';
         auditBody.innerHTML +=
           '<tr style="border-top:1px solid var(--border);">' +
-          '<td style="padding:4px 8px;">' + esc(log.feedbackDate || '') + '</td>' +
+          '<td style="padding:4px 8px;white-space:nowrap;font-size:10px;">' + esc(log.feedbackDate || '') + '</td>' +
           '<td><strong>' + esc(log.champ || '') + '</strong></td>' +
-          '<td>#' + esc(log.orderId || '') + '</td>' +
-          '<td>' + esc(log.actionType || '') + '</td></tr>';
+          '<td style="font-size:10px;color:var(--text-2);">' + esc(log.itemName || ('#' + (log.orderId || ''))) + '</td>' +
+          '<td>' + actLabel + (log.actionValue ? '<br><span style="font-size:9px;color:var(--text-2);">' + esc(log.actionValue) + '</span>' : '') + '</td></tr>';
       });
     }
 
@@ -714,15 +779,27 @@ function openAdminDashboardModal() {
         var imgHtml = (l.photo && l.photo.indexOf('data:image') === 0)
           ? '<img src="' + l.photo + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">'
           : '<span style="font-size:18px;opacity:0.35;">👤</span>';
-        var locHtml = (l.mapsUrl && l.mapsUrl.indexOf('http') === 0)
-          ? '<a href="' + esc(l.mapsUrl) + '" target="_blank" style="color:var(--info);font-size:11px;font-weight:800;text-decoration:none;">📍 خريطة</a>'
-          : '—';
+
+        // كشف الفيك لوكيشن: أقل من 1.5 ثانية مشبوه جداً
+        var isSuspect = (l.locationMs !== null && l.locationMs !== undefined && l.locationMs < 1500);
+        var suspectBadge = isSuspect
+          ? ' <span style="background:var(--error);color:white;font-size:9px;padding:1px 5px;border-radius:var(--r-full);font-weight:900;" title="GPS جاء في ' + l.locationMs + 'ms — مشبوه">⚠️ فيك؟</span>'
+          : '';
+
+        var locText = '';
+        if (l.mapsUrl && l.mapsUrl.indexOf('http') === 0) {
+          locText = '<a href="' + esc(l.mapsUrl) + '" target="_blank" style="color:var(--info);font-size:11px;font-weight:800;text-decoration:none;">📍 خريطة</a>';
+          if (l.areaName) locText += '<br><span style="font-size:10px;color:var(--text-2);">' + esc(l.areaName) + '</span>';
+        } else {
+          locText = '—';
+        }
+
         loginBody.innerHTML +=
           '<tr style="border-top:1px solid var(--border);">' +
-          '<td style="padding:4px 8px;white-space:nowrap;">' + esc(l.timestamp || '') + '</td>' +
-          '<td><strong>' + esc(l.name || '') + '</strong></td>' +
+          '<td style="padding:4px 8px;white-space:nowrap;">' + esc(l.timestamp || '') + suspectBadge + '</td>' +
+          '<td><strong>' + esc(l.name || '') + '</strong><br><span style="font-size:10px;color:var(--text-2);">دقة: ' + esc(l.accuracy || '—') + 'm</span></td>' +
           '<td style="text-align:center;">' + imgHtml + '</td>' +
-          '<td style="text-align:center;">' + locHtml + '</td></tr>';
+          '<td>' + locText + '</td></tr>';
       });
     }
   });
@@ -756,4 +833,51 @@ function toast(msg, type) {
   t.className = 'toast ' + (type || 'inf'); t.textContent = msg;
   wrap.appendChild(t);
   setTimeout(function() { if (t.parentNode) t.remove(); }, 3200);
+}
+
+// ==============================================================================
+// 📋 ملخص الزيارة (Branch Summary)
+// ==============================================================================
+function showBranchSummaryModal() {
+  document.getElementById('branchSummaryModal').classList.add('on');
+}
+function closeBranchSummaryModal() {
+  document.getElementById('branchSummaryModal').classList.remove('on');
+}
+
+function doSubmitBranchSummary() {
+  var btn = document.getElementById('btnSubmitSummary');
+  if (btn && btn._busy) return;
+  if (btn) btn._busy = true;
+
+  var payload = {
+    name:           S.user        || '',
+    email:          S.userEmail   || '',
+    visitObjective: document.getElementById('sumVisitObjective').value,
+    menuManagement: document.getElementById('sumMenuManagement').value,
+    empPerShift:    document.getElementById('sumEmpPerShift').value,
+    riderPerShift:  document.getElementById('sumRiderPerShift').value,
+    orderId:        document.getElementById('sumOrderId').value,
+    actionsplan:    document.getElementById('sumActionsplan').value,
+    vendorIssue:    document.getElementById('sumVendorIssue').value
+  };
+
+  showLoader(); setLoaderText('جاري إرسال ملخص الزيارة...');
+
+  callAPI('submitBranchSummary', payload, function(err, res) {
+    hideLoader();
+    if (btn) btn._busy = false;
+
+    if (!err && res && res.status === 'success') {
+      toast('تم إرسال ملخص الزيارة ✅', 'ok');
+      closeBranchSummaryModal();
+      // إعادة تعيين الحقول
+      ['sumVisitObjective','sumMenuManagement','sumEmpPerShift','sumRiderPerShift',
+       'sumOrderId','sumActionsplan','sumVendorIssue'].forEach(function(id) {
+        var el = document.getElementById(id); if (el) el.value = '';
+      });
+    } else {
+      toast('فشل إرسال الملخص ⚠️', 'err');
+    }
+  });
 }
