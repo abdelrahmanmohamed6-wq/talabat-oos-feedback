@@ -65,7 +65,8 @@
         <div style="font-weight:900; font-size:14px;">OOS Feedback</div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
-        <button id="btnDashTrigger" onclick="openAdminDashboardModal()">📊 التحليلات</button>
+        <button id="btnDashTrigger"     onclick="openAdminDashboardModal()" style="display:none;">📊 التحليلات</button>
+        <button id="btnSummaryTrigger"  onclick="showBranchSummaryModal()"  style="display:none;">📋 ملخص</button>
         <span id="headerName">-</span>
         <button onclick="doLogout()" style="border:none; background:none; cursor:pointer; font-size:18px;" title="خروج">⬅️</button>
       </div>
@@ -191,8 +192,8 @@
           <tr>
             <th style="padding:5px 8px;">الوقت</th>
             <th>الموظف</th>
-            <th>الطلب</th>
-            <th>الإجراء</th>
+            <th>المنتج</th>
+            <th>الإجراء / القيمة</th>
           </tr>
         </thead>
         <tbody id="dashAuditBody"></tbody>
@@ -214,6 +215,77 @@
         <tbody id="dashLoginBody"></tbody>
       </table>
     </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     BRANCH SUMMARY MODAL
+════════════════════════════════════════════════════ -->
+<div id="branchSummaryModal">
+  <div class="sum-box">
+
+    <div class="dash-header">
+      <h3>📋 ملخص الزيارة</h3>
+      <button onclick="closeBranchSummaryModal()">✕ إغلاق</button>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+
+      <div>
+        <label class="sum-label">🎯 هدف الزيارة</label>
+        <select id="sumVisitObjective" class="sum-input">
+          <option value="">— اختر —</option>
+          <option>مراجعة المخزون</option>
+          <option>متابعة نواقص</option>
+          <option>تدريب</option>
+          <option>دعم فني</option>
+          <option>أخرى</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="sum-label">📋 إدارة القائمة</label>
+        <select id="sumMenuManagement" class="sum-input">
+          <option value="">— اختر —</option>
+          <option>مكتملة</option>
+          <option>جزئية</option>
+          <option>غير مكتملة</option>
+        </select>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <div style="flex:1;">
+          <label class="sum-label">👥 موظفين/شيفت</label>
+          <input type="number" id="sumEmpPerShift" class="sum-input" placeholder="0" min="0">
+        </div>
+        <div style="flex:1;">
+          <label class="sum-label">🛵 رايدرز/شيفت</label>
+          <input type="number" id="sumRiderPerShift" class="sum-input" placeholder="0" min="0">
+        </div>
+      </div>
+
+      <div>
+        <label class="sum-label">🔖 Order ID (اختياري)</label>
+        <input type="text" id="sumOrderId" class="sum-input" placeholder="رقم الطلب لو موجود">
+      </div>
+
+      <div>
+        <label class="sum-label">📝 خطة الإجراءات</label>
+        <textarea id="sumActionsplan" class="sum-input" rows="3" placeholder="الإجراءات اللي اتعملت..."></textarea>
+      </div>
+
+      <div>
+        <label class="sum-label">⚠️ مشاكل الفيندور</label>
+        <textarea id="sumVendorIssue" class="sum-input" rows="2" placeholder="أي مشاكل لاحظتها..."></textarea>
+      </div>
+
+    </div>
+
+    <button id="btnSubmitSummary" onclick="doSubmitBranchSummary()"
+      style="width:100%; margin-top:18px; padding:13px; background:var(--primary); color:white; border:none; border-radius:var(--r-sm); font-family:'Cairo'; font-size:15px; font-weight:900; cursor:pointer;">
+      📤 إرسال ملخص الزيارة
+    </button>
 
   </div>
 </div>
