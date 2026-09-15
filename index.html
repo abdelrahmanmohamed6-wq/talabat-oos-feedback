@@ -201,7 +201,13 @@
     </div>
 
     <!-- سجل الحضور -->
-    <h4 style="font-weight:800; font-size:13px; margin-top:16px;">📸 سجل الحضور (100)</h4>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; margin-bottom:0;">
+      <h4 style="font-weight:800; font-size:13px;">📸 سجل الحضور (آخر 20)</h4>
+      <button onclick="refreshLoginLogs()" id="btnRefreshLogins"
+        style="background:var(--primary-bg);color:var(--primary);border:1.5px solid var(--primary);border-radius:20px;padding:4px 12px;font-family:'Cairo';font-size:11px;font-weight:800;cursor:pointer;">
+        🔄 تحديث
+      </button>
+    </div>
     <div style="max-height:170px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">
       <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:right;">
         <thead style="background:var(--bg); position:sticky; top:0;">
