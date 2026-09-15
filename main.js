@@ -1,339 +1,444 @@
-// 🔗 ضع رابط النشر المباشر من Google Apps Script هنا
-var API_URL = "https://script.google.com/macros/s/AKfycbxjabytSWsUXElsvvHwPyhW8d3m312le2B0XOYzp7Zr5LQYeEUqL0OOMkiMmcJJqmsR/exec";
+// ==============================================================================
+// Talabat OOS · GitHub Pages Frontend (Final Version)
+// ==============================================================================
 
-var S = { user: null, userEmail: null, isOwner: false, ownerViewingUser: null, all: [], filtered: [], batchSelections: {}, allTeamNames: [], currentToken: null };
+// ⚠️ بعد إعادة نشر Code.gs، استبدل هذا الرابط بالرابط الجديد
+var API_URL = 'https://script.google.com/macros/s/AKfycbxjabytSWsUXElsvvHwPyhW8d3m312le2B0XOYzp7Zr5LQYeEUqL0OOMkiMmcJJqmsR/exec';
+
+// ─── حالة التطبيق ──────────────────────────────────────────────────────────────
+var S = {
+  user: null, userEmail: null, isOwner: false, ownerViewingUser: null,
+  all: [], filtered: [], batchSelections: {}, allTeamNames: [],
+  currentToken: null, location: null
+};
+
+// ─── Session Cache (6 ساعات) ──────────────────────────────────────────────────
+var _SKEY = 'oos_sess_v3';
+var _STTL = 6 * 60 * 60 * 1000;
+
+function readCache() {
+  try {
+    var c = JSON.parse(localStorage.getItem(_SKEY));
+    return (c && (Date.now() - c.ts) < _STTL) ? c : null;
+  } catch (e) { return null; }
+}
+function writeCache(d) {
+  try {
+    localStorage.setItem(_SKEY, JSON.stringify({
+      name: d.name, email: d.email, isOwner: d.isOwner,
+      allNames: d.allNames || [], ts: Date.now()
+    }));
+  } catch (e) {}
+}
+function clearCache() { localStorage.removeItem(_SKEY); }
+
+// فك تشفير JWT لاستخراج الإيميل بدون انتظار شبكة
+function parseJwt(token) {
+  try {
+    var base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    var json = decodeURIComponent(
+      atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join('')
+    );
+    return JSON.parse(json);
+  } catch (e) { return null; }
+}
+
+// ==============================================================================
+// 🌐 محرك الاتصالات (POST للثقيل، JSONP للقراءة)
+// ==============================================================================
+var POST_ACTIONS = ['recordUserLogin', 'submitBatchFeedback', 'submitBranchSummary'];
 
 function callAPI(action, payload, callback) {
-  var callbackName = 'jsonp_cb_' + Math.round(1000000 * Math.random());
-  
-  window[callbackName] = function(data) {
-    delete window[callbackName];
-    var scriptEl = document.getElementById(callbackName);
-    if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+  payload = payload || {};
+  if (S.currentToken) payload.id_token = S.currentToken;
+
+  if (POST_ACTIONS.indexOf(action) !== -1) {
+    // POST للبيانات الثقيلة (صور + فيدباك كبير)
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action, payload: payload })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) { if (callback) callback(null, data); })
+    .catch(function(err) {
+      console.error('POST Error:', err);
+      if (callback) callback(err, null);
+    });
+    return;
+  }
+
+  // JSONP GET للقراءة السريعة (بدون CORS)
+  var cbName = 'jsonp_' + Math.round(1e6 * Math.random());
+  var timer  = setTimeout(function() {
+    if (window[cbName]) {
+      delete window[cbName];
+      if (callback) callback(new Error('Timeout'), null);
+      toast('انتهت مهلة الاتصال ⌛', 'err');
+    }
+  }, 45000);
+
+  window[cbName] = function(data) {
+    clearTimeout(timer);
+    var el = document.getElementById(cbName);
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    delete window[cbName];
     if (callback) callback(null, data);
   };
 
-  // إرفاق التوكين الأمني مع كل طلب لتأمين البيانات
-  payload = payload || {};
-  payload.id_token = S.currentToken;
-
-  var script = document.createElement('script');
-  script.id = callbackName;
-  var encodedPayload = encodeURIComponent(JSON.stringify(payload));
-  script.src = API_URL + '?action=' + action + '&payload=' + encodedPayload + '&callback=' + callbackName;
-  
-  script.onerror = function() {
-    delete window[callbackName];
-    if (script.parentNode) script.parentNode.removeChild(script);
-    if (callback) callback(new Error('فشل الاتصال بالخادم الأمني'), null);
+  var sc  = document.createElement('script');
+  sc.id   = cbName;
+  sc.src  = API_URL + '?action=' + action +
+            '&payload=' + encodeURIComponent(JSON.stringify(payload)) +
+            '&callback=' + cbName;
+  sc.onerror = function() {
+    clearTimeout(timer);
+    if (window[cbName]) delete window[cbName];
+    if (callback) callback(new Error('Network Error'), null);
+    toast('فشل الاتصال بالخادم 🌐', 'err');
   };
-
-  document.body.appendChild(script);
+  document.body.appendChild(sc);
 }
 
-function renderImageTag(rawUrl) {
-  if (!rawUrl || typeof rawUrl !== 'string' || rawUrl.trim() === '') return '<div style="font-size:36px; opacity:0.3;">📦</div>';
-  var url = rawUrl.trim();
-  if (url.indexOf('http') !== 0) return '<div style="font-size:36px; opacity:0.3;">📦</div>';
-  
-  var proxy1 = 'https://images.weserv.nl/?url=' + encodeURIComponent(url);
-  var proxy2 = 'https://wsrv.nl/?url=' + encodeURIComponent(url);
-
-  return '<img src="' + esc(url) + '" class="center-product-img" referrerpolicy="no-referrer" crossorigin="anonymous" ' +
-    'onerror="this.onerror=null; this.src=\'' + esc(proxy1) + '\'; this.onerror=function(){ this.onerror=null; this.src=\'' + esc(proxy2) + '\'; this.onerror=function(){ this.parentElement.innerHTML=\'<div style=\\&quot;font-size:36px; opacity:0.3;\\&quot;>📦</div>\'; }; };">';
-}
-
-document.addEventListener("DOMContentLoaded", function() {
-  hideLoader();
-  show('loginScreen');
+// ==============================================================================
+// 🚀 بدء التشغيل
+// ==============================================================================
+document.addEventListener('DOMContentLoaded', function() {
+  var cached = readCache();
+  if (cached) {
+    S.user = cached.name; S.userEmail = cached.email;
+    S.isOwner = cached.isOwner; S.allTeamNames = cached.allNames || [];
+    loadData();
+  } else {
+    hideLoader();
+    show('loginScreen');
+  }
 });
 
-// 🔑 الاستجابة الأوتوماتيكية فور اختيار الموظف لحسابه في نافذة جوجل
+// ==============================================================================
+// 🔐 تسجيل الدخول (Google OAuth)
+// ==============================================================================
 function handleCredentialResponse(response) {
-  var idToken = response.credential;
-  S.currentToken = idToken;
-  
+  S.currentToken = response.credential;
+
+  // استخراج الإيميل من JWT فوراً بدون انتظار شبكة
+  var tokenData = parseJwt(response.credential);
+  if (!tokenData || !tokenData.email) {
+    showAuthError('تعذر قراءة بيانات الحساب من Google');
+    return;
+  }
+
   showLoader();
-  setLoaderText("جاري فك التشفير والتحقق من شيت maping...");
+  setLoaderText('جاري التحقق من صلاحيات الدخول...');
 
-  callAPI("verifyUserAuth", {}, function(err, res) {
+  callAPI('verifyUserAuth', { email: tokenData.email }, function(err, res) {
     hideLoader();
-    var errBox = document.getElementById('authErrorMsg');
-    
-    if (err || !res) {
-      if (errBox) { errBox.style.display = 'block'; errBox.textContent = 'تعذر الاتصال بسيرفر الأمان'; }
-      return;
-    }
+    if (err || !res) { showAuthError('فشل الاتصال. تحقق من الإنترنت'); return; }
+    if (!res.isAuthorized) { showAuthError('🚫 ' + (res.message || 'هذا الحساب غير مصرح له')); return; }
 
-    if (res.isAuthorized) {
-      S.user = res.name;
-      S.userEmail = res.email;
-      S.isOwner = res.isOwner;
-      S.allTeamNames = res.allNames || [];
+    clearAuthError();
+    S.user = res.name; S.userEmail = res.email;
+    S.isOwner = res.isOwner; S.allTeamNames = res.allNames || [];
+    writeCache(res);
 
-      if (S.isOwner) {
-        callAPI("recordUserLogin", { photo: "دخول إداري مباشر" }, function() {});
-        populateAdminDropdown();
-        loadData();
-      } else {
-        showSelfieModal();
-      }
+    if (S.isOwner) {
+      // المدير يدخل مباشرة بدون صورة
+      loadData();
     } else {
-      if (errBox) {
-        errBox.style.display = 'block';
-        errBox.textContent = res.message || "حظر أمني: هذا الحساب غير مصرح له بالدخول نهائياً.";
-      }
+      // الموظف: طلب الموقع أولاً ثم الصورة
+      requestLocationThenSelfie();
     }
   });
 }
 
-function showSelfieModal() {
-  var modalHtml = `
-    <div id="selfieModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
-      <div style="background:white; border-radius:16px; padding:24px; max-width:380px; width:100%; text-align:center;">
-        <div style="font-size:36px; margin-bottom:8px;">📸</div>
-        <h3 style="font-size:16px; font-weight:900;">إثبات الحضور بالصورة</h3>
-        <p style="font-size:11px; color:var(--text-2); margin-bottom:16px;">مرحباً <strong>${S.user}</strong>، التقاط الصورة إجباري لتسجيل الحضور اليومي</p>
-        <input type="file" accept="image/*" capture="user" id="selfieInput" style="margin-bottom:12px; font-size:12px;" onchange="handleSelfieSelect(this)">
-        <button id="btnConfirmLogin" class="btn-login" style="width:100%; padding:10px;" onclick="confirmLoginWithPhoto()" disabled>تأكيد الحضور وبدء العمل ←</button>
-      </div>
-    </div>
-  `;
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
+function showAuthError(msg) {
+  var el = document.getElementById('authErrorMsg');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+function clearAuthError() {
+  var el = document.getElementById('authErrorMsg');
+  if (el) { el.style.display = 'none'; el.textContent = ''; }
+}
+function doLogout() { clearCache(); location.reload(); }
+
+// ─── الموقع الجغرافي ──────────────────────────────────────────────────────────
+function requestLocationThenSelfie() {
+  if (!navigator.geolocation) { showSelfieModal(); return; }
+  showLoader(); setLoaderText('جاري تحديد موقعك الجغرافي...');
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      hideLoader();
+      S.location = {
+        lat:      pos.coords.latitude,
+        lng:      pos.coords.longitude,
+        accuracy: Math.round(pos.coords.accuracy),
+        mapsUrl:  'https://maps.google.com/?q=' + pos.coords.latitude + ',' + pos.coords.longitude
+      };
+      showSelfieModal();
+    },
+    function() {
+      hideLoader();
+      toast('تعذر تحديد موقعك بدقة 📡', 'inf');
+      showSelfieModal();
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
 }
 
-var capturedSelfieData = "";
+// ─── مودال السيلفي ────────────────────────────────────────────────────────────
+var _selfieData = '';
 
+function showSelfieModal() {
+  var html =
+    '<div id="selfieModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;">' +
+    '<div style="background:white;border-radius:20px;padding:28px;max-width:380px;width:100%;text-align:center;">' +
+    '<div style="font-size:44px;margin-bottom:8px;">📸</div>' +
+    '<h3 style="font-size:16px;font-weight:900;margin-bottom:4px;">إثبات الحضور بالصورة</h3>' +
+    '<p style="font-size:12px;color:var(--text-2);margin-bottom:20px;">مرحباً <strong>' + esc(S.user) + '</strong>، التقط صورة سيلفي سريعة لبدء العمل.</p>' +
+    '<input type="file" accept="image/*" capture="user" id="selfieFileInput" style="margin-bottom:14px;font-size:12px;" onchange="handleSelfieSelect(this)">' +
+    '<div id="selfiePreview" style="margin-bottom:14px;min-height:10px;"></div>' +
+    '<button id="btnConfirmLogin" onclick="confirmLoginWithPhoto()" disabled ' +
+    'style="width:100%;padding:12px;background:var(--primary);color:white;border:none;border-radius:var(--r-sm);font-family:\'Cairo\';font-weight:900;font-size:14px;cursor:pointer;opacity:0.5;">' +
+    'تأكيد الحضور وبدء العمل ←' +
+    '</button>' +
+    '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+// ضغط صورة السيلفي قبل الإرسال (max 400px)
 function handleSelfieSelect(input) {
   var file = input.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    capturedSelfieData = e.target.result;
-    document.getElementById('btnConfirmLogin').disabled = false;
+    var img = new Image();
+    img.onload = function() {
+      var MAX = 400;
+      var ratio = img.width > MAX ? MAX / img.width : 1;
+      var canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      _selfieData = canvas.toDataURL('image/jpeg', 0.7);
+
+      var prev = document.getElementById('selfiePreview');
+      if (prev) {
+        prev.innerHTML = '<img src="' + _selfieData + '" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--primary);">';
+      }
+      var btn = document.getElementById('btnConfirmLogin');
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
+// إرسال بيانات الحضور (POST)
 function confirmLoginWithPhoto() {
-  showLoader();
-  setLoaderText("جاري تسجيل الحضور وتحميل البيانات...");
-  callAPI("recordUserLogin", { photo: capturedSelfieData }, function(err, res) {
+  var btn = document.getElementById('btnConfirmLogin');
+  if (btn) { if (btn._busy) return; btn._busy = true; btn.disabled = true; }
+
+  showLoader(); setLoaderText('جاري تسجيل الحضور...');
+  var loc = S.location || {};
+
+  callAPI('recordUserLogin', {
+    name:      S.user,
+    email:     S.userEmail,
+    loginTime: new Date().toISOString(),
+    lat:       loc.lat      || '',
+    lng:       loc.lng      || '',
+    accuracy:  loc.accuracy || '',
+    mapsUrl:   loc.mapsUrl  || '',
+    photo:     _selfieData
+  }, function(err, res) {
+    _selfieData = ''; // تفريغ الذاكرة
     var modal = document.getElementById('selfieModal');
     if (modal) modal.remove();
-    populateAdminDropdown();
+
+    if (!err && res && res.status === 'success') toast('تم تسجيل الحضور بنجاح ✅', 'ok');
+    else toast('دخلت بنجاح (الصورة قد لا تكون وصلت) ⚠️', 'inf');
+
     loadData();
   });
 }
 
-function populateAdminDropdown() {
-  var adminSel = document.getElementById('adminUserSelect');
-  if (adminSel) {
-    adminSel.innerHTML = '<option value="__ALL__">— كل أعضاء الفريق —</option>';
-    S.allTeamNames.forEach(function(n) {
-      var o = document.createElement('option'); o.value = n; o.textContent = n; adminSel.appendChild(o);
-    });
-  }
-}
-
-function adminLoadSelected() {
-  var sel = document.getElementById('adminUserSelect');
-  S.ownerViewingUser = (sel.value === '__ALL__') ? null : sel.value;
-  loadData();
-}
-
-function openAdminDashboardModal() {
-  document.getElementById('adminDashboardModal').classList.add('on');
-  callAPI("getAdminAnalytics", {}, function(err, data) {
-    if (err || !data) return;
-    document.getElementById('dashKpiTotal').textContent     = data.kpis.total;
-    document.getElementById('dashKpiPending').textContent   = data.kpis.pending;
-    document.getElementById('dashKpiCompleted').textContent = data.kpis.completed;
-    document.getElementById('dashKpiRate').textContent      = data.kpis.completionRate + "%";
-
-    var teamBody = document.getElementById('dashTeamBody'); teamBody.innerHTML = '';
-    for (var champ in data.teamStats) {
-      var st = data.teamStats[champ]; var tot = st.pending + st.completed;
-      var rate = tot > 0 ? Math.round((st.completed / tot) * 100) : 0;
-      teamBody.innerHTML += `<tr><td><b>${champ}</b></td><td>${st.pending}</td><td>${st.completed}</td><td><b>${rate}%</b></td></tr>`;
-    }
-
-    var auditBody = document.getElementById('dashAuditBody'); auditBody.innerHTML = '';
-    data.recentAuditLogs.forEach(function(log) {
-      auditBody.innerHTML += `<tr><td>${log.feedbackDate}</td><td><b>${log.champ}</b></td><td>#${log.orderId}</td><td>${log.actionType}</td></tr>`;
-    });
-
-    var loginBody = document.getElementById('dashLoginBody');
-    if (!loginBody) {
-      var modalBox = document.querySelector('.dash-box');
-      modalBox.insertAdjacentHTML('beforeend', `
-        <h4 style="font-weight:800; font-size:13px; margin-top:20px;">📸 سجل حضور الموظفين وتتبع الصور</h4>
-        <div style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">
-          <table style="width:100%; border-collapse:collapse; font-size:11px;">
-            <thead><tr style="background:var(--bg);"><th>الوقت</th><th>الموظف</th><th>البريد</th><th>الصورة</th></tr></thead>
-            <tbody id="dashLoginBody"></tbody>
-          </table>
-        </div>
-      `);
-      loginBody = document.getElementById('dashLoginBody');
-    }
-
-    loginBody.innerHTML = '';
-    (data.loginLogs || []).forEach(function(l) {
-      var photoHtml = l.photo && l.photo.startsWith("data:image") 
-        ? `<img src="${l.photo}" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid var(--primary);">`
-        : '—';
-      loginBody.innerHTML += `<tr><td>${l.timestamp}</td><td><b>${l.name}</b></td><td>${l.email}</td><td>${photoHtml}</td></tr>`;
-    });
-  });
-}
-
-function closeAdminDashboardModal() { document.getElementById('adminDashboardModal').classList.remove('on'); }
-
+// ==============================================================================
+// 📊 تحميل البيانات
+// ==============================================================================
 function loadData() {
-  showLoader();
-  setLoaderText("جاري قراءة البيانات...");
-  var action = S.isOwner ? "getOwnerData" : "getUserData";
-  var payload = S.isOwner ? { filterName: S.ownerViewingUser } : { user: S.user };
+  showLoader(); setLoaderText('جاري تحميل بيانات النواقص...');
+  var action  = S.isOwner ? 'getOwnerData' : 'getUserData';
+  var payload = S.isOwner
+    ? { filterName: S.ownerViewingUser || null }
+    : { user: S.user };
 
   callAPI(action, payload, function(err, res) {
-    if (err || !res || res.status === "unauthorized") { hideLoader(); toast('غير مصرح لك بقراءة البيانات', 'err'); return; }
-    S.all = res.issues || []; S.batchSelections = {};
-    
-    updateCascadingFilters();
+    hideLoader();
+    if (err || !res) {
+      document.getElementById('itemsList').innerHTML =
+        '<div style="text-align:center;padding:40px;color:var(--error);">فشل تحميل البيانات. تحقق من الإنترنت.</div>';
+      hide('loginScreen');
+      document.getElementById('appScreen').classList.add('on');
+      return;
+    }
+
+    S.all = res.issues || [];
+    var f = res.filters || { chainNames: [], chainMap: {}, allVendors: [], allBranchIds: [] };
+    S._chainMap    = f.chainMap || {};
+    S.allTeamNames = res.allNames || S.allTeamNames;
+
+    // بناء الـ 4 فلاتر
+    rebuildSelect('fChainName', 'كل Chain Name',  f.chainNames);
+    rebuildSelect('fChainId',   'كل Chain ID',    collectUniq(S.all, 'chainId'));
+    rebuildSelect('fVendor',    'كل الفروع',      f.allVendors);
+    rebuildSelect('fBranch',    'كل Vendor IDs',  f.allBranchIds);
+
+    S.batchSelections = {};
     applyFilters();
 
+    // إظهار الواجهة
     hide('loginScreen');
     document.getElementById('appScreen').classList.add('on');
-
-    var headerLabel = S.user;
-    if (S.isOwner && S.ownerViewingUser) headerLabel = '👁️ ' + S.ownerViewingUser;
-    if (S.isOwner && !S.ownerViewingUser) headerLabel = 'كل الفريق';
-    document.getElementById('headerName').textContent = headerLabel;
+    setTxt('headerName', S.user || '');
 
     if (S.isOwner) {
       document.getElementById('adminFilterBar').classList.add('show');
       document.getElementById('btnDashTrigger').style.display = 'inline-block';
-      document.getElementById('adminUserSelect').value = S.ownerViewingUser || '__ALL__';
+      // ملء dropdown الفريق
+      var sel = document.getElementById('adminUserSelect');
+      sel.innerHTML = '<option value="__ALL__">— كل أعضاء الفريق —</option>';
+      S.allTeamNames.forEach(function(n) {
+        var o = document.createElement('option'); o.value = n; o.textContent = n;
+        sel.appendChild(o);
+      });
+      if (S.ownerViewingUser) sel.value = S.ownerViewingUser;
     } else {
       document.getElementById('adminFilterBar').classList.remove('show');
       document.getElementById('btnDashTrigger').style.display = 'none';
     }
 
-    hideLoader();
-    toast(S.all.length ? 'تم تحميل ' + S.all.length + ' عنصر 📋' : 'لا توجد عناصر معلقة 🎉', 'inf');
+    toast(S.all.length ? 'تم تحميل ' + S.all.length + ' عنصر 📋' : 'لا توجد نواقص 🎉', 'inf');
   });
 }
 
-function refreshData() { loadData(); }
-
-function updateCascadingFilters() {
-  var selectedVendor    = document.getElementById('fVendor').value;
-  var selectedBranch    = document.getElementById('fBranch').value;
-  var selectedChainName = document.getElementById('fChainName').value;
-  var selectedChainId   = document.getElementById('fChainId').value;
-
-  var available = S.all.filter(function(i) {
-    if (selectedVendor    && i.vendorName !== selectedVendor)               return false;
-    if (selectedBranch    && String(i.branchId) !== String(selectedBranch)) return false;
-    if (selectedChainName && i.chainName  !== selectedChainName)            return false;
-    if (selectedChainId   && String(i.chainId) !== String(selectedChainId)) return false;
-    return true;
-  });
-
-  var vendors = {}, branchIds = {}, chainNames = {}, chainIds = {};
-
-  available.forEach(function(i) {
-    if (i.vendorName) vendors[i.vendorName] = true;
-    if (i.branchId)   branchIds[i.branchId] = true;
-    if (i.chainName)  chainNames[i.chainName] = true;
-    if (i.chainId)    chainIds[i.chainId] = true;
-  });
-
-  rebuildSelect('fVendor',    'كل الفروع',    Object.keys(vendors).sort(),    selectedVendor);
-  rebuildSelect('fBranch',    'كل Vendor ID', Object.keys(branchIds).sort(),  selectedBranch);
-  rebuildSelect('fChainName', 'كل Chain Name', Object.keys(chainNames).sort(), selectedChainName);
-  rebuildSelect('fChainId',   'كل Chain ID',   Object.keys(chainIds).sort(),   selectedChainId);
+function adminLoadSelected() {
+  var val = document.getElementById('adminUserSelect').value;
+  S.ownerViewingUser = (val === '__ALL__') ? null : val;
+  loadData();
 }
 
-function rebuildSelect(id, placeholder, optionsArray, currentValue) {
-  var sel = document.getElementById(id);
+function collectUniq(arr, key) {
+  var map = {};
+  arr.forEach(function(i) { if (i[key]) map[i[key]] = true; });
+  return Object.keys(map).sort();
+}
+
+// ==============================================================================
+// 🔍 الفلاتر المترابطة (Cascading Filters)
+// ==============================================================================
+function rebuildSelect(id, placeholder, opts) {
+  var sel = document.getElementById(id); if (!sel) return;
+  var cur = sel.value;
   sel.innerHTML = '<option value="">' + placeholder + '</option>';
-  optionsArray.forEach(function(val) {
-    var o = document.createElement('option');
-    o.value = val;
-    o.textContent = val;
-    if (val === currentValue) o.selected = true;
+  (opts || []).forEach(function(v) {
+    var o = document.createElement('option'); o.value = v; o.textContent = v;
+    if (String(v) === String(cur)) o.selected = true;
     sel.appendChild(o);
   });
 }
 
 function applyFilters() {
-  updateCascadingFilters();
-
-  var vendor    = document.getElementById('fVendor').value;
-  var branch    = document.getElementById('fBranch').value;
-  var chainName = document.getElementById('fChainName').value;
-  var chainId   = document.getElementById('fChainId').value;
+  var cn = document.getElementById('fChainName').value;
+  var ci = document.getElementById('fChainId').value;
+  var vn = document.getElementById('fVendor').value;
+  var br = document.getElementById('fBranch').value;
 
   S.filtered = S.all.filter(function(i) {
-    if (vendor    && i.vendorName !== vendor)               return false;
-    if (branch    && String(i.branchId) !== String(branch)) return false;
-    if (chainName && i.chainName  !== chainName)            return false;
-    if (chainId   && String(i.chainId) !== String(chainId)) return false;
+    if (cn && i.chainName  !== cn)               return false;
+    if (ci && String(i.chainId)  !== String(ci)) return false;
+    if (vn && i.vendorName !== vn)               return false;
+    if (br && String(i.branchId) !== String(br)) return false;
     return true;
   });
 
+  // إعادة بناء الفلاتر بناءً على ما هو متاح في النتائج الحالية
+  var pool = S.filtered.length ? S.filtered : S.all;
+  rebuildSelect('fChainName', 'كل Chain Name', collectUniq(pool, 'chainName'));
+  rebuildSelect('fChainId',   'كل Chain ID',   collectUniq(pool, 'chainId'));
+  rebuildSelect('fVendor',    'كل الفروع',     collectUniq(pool, 'vendorName'));
+  rebuildSelect('fBranch',    'كل Vendor IDs', collectUniq(pool, 'branchId'));
+
+  // إعادة تطبيق القيم المختارة
+  if (cn) document.getElementById('fChainName').value = cn;
+  if (ci) document.getElementById('fChainId').value   = ci;
+  if (vn) document.getElementById('fVendor').value    = vn;
+  if (br) document.getElementById('fBranch').value    = br;
+
   renderItems();
-  updateBatchBarState();
 }
 
 function clearFilters() {
-  document.getElementById('fVendor').value = '';
-  document.getElementById('fBranch').value = '';
-  document.getElementById('fChainName').value = '';
-  document.getElementById('fChainId').value = '';
-  applyFilters();
+  ['fChainName', 'fChainId', 'fVendor', 'fBranch'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  // إعادة بناء بكل البيانات
+  rebuildSelect('fChainName', 'كل Chain Name', collectUniq(S.all, 'chainName'));
+  rebuildSelect('fChainId',   'كل Chain ID',   collectUniq(S.all, 'chainId'));
+  rebuildSelect('fVendor',    'كل الفروع',     collectUniq(S.all, 'vendorName'));
+  rebuildSelect('fBranch',    'كل Vendor IDs', collectUniq(S.all, 'branchId'));
+  S.filtered = S.all.slice();
+  renderItems();
 }
 
+// ==============================================================================
+// 🃏 رسم كروت النواقص
+// ==============================================================================
 function renderItems() {
-  var list = document.getElementById('itemsList'); var empty = document.getElementById('emptyState');
+  var list  = document.getElementById('itemsList');
+  var empty = document.getElementById('emptyState');
   list.innerHTML = '';
-  if (S.filtered.length === 0) { empty.style.display = 'block'; return; }
+
+  if (!S.filtered.length) { empty.style.display = 'block'; updateBatchBarState(); return; }
   empty.style.display = 'none';
-  S.filtered.forEach(function(issue) { list.appendChild(buildCard(issue)); });
+  S.filtered.forEach(function(iss) { list.appendChild(buildCard(iss)); });
+  updateBatchBarState();
 }
 
 function buildCard(iss) {
-  var k = cKey(iss);
-  var div = document.createElement('div'); div.className = 'icard'; div.id = 'icard_' + k;
-  var pelicanClass = iss.pelicanStatus ? (iss.pelicanStatus.toLowerCase().includes('not_found') ? 'p-not-found' : 'p-active') : '';
+  var k   = cKey(iss);
+  var div = document.createElement('div');
+  div.className = 'icard'; div.id = 'icard_' + k;
 
-  var imgHtml = renderImageTag(iss.imageUrl);
+  var ps  = (iss.pelicanStatus || '').toString().toLowerCase();
+  var cls = (ps.indexOf('not') !== -1) ? 'p-not-found' : 'p-active';
 
   div.innerHTML =
     '<div class="ch">' +
-      '<span class="ch-date">📅 ' + (iss.orderDate || '—') + '</span>' +
-      '<span class="ch-badge ' + pelicanClass + '">' + (iss.pelicanStatus || 'N/A') + '</span>' +
+      '<span class="ch-date">📅 ' + esc(iss.orderDate || '—') + '</span>' +
+      '<span class="ch-badge ' + cls + '">' + esc(iss.pelicanStatus || 'N/A') + '</span>' +
     '</div>' +
     '<div class="cb">' +
       '<div class="cb-info">' +
-        '<div class="cb-item-name">🏷️ ' + esc(iss.itemName || '—') + '</div>' +
+        '<div class="cb-chain-badge">🔗 ' + esc(iss.chainName || '—') + ' · ' + esc(iss.chainId || '—') + '</div>' +
+        '<div class="cb-item-name">' + esc(iss.itemName || '—') + '</div>' +
         '<div class="cb-sku">SKU: ' + esc(iss.itemSku || '—') + '</div>' +
-        '<div style="font-size:11px; font-weight:800; margin-bottom:4px;">🏪 ' + esc(iss.vendorName || '—') + '</div>' +
-        '<div style="font-size:10px; color:var(--text-2); display:flex; flex-direction:column; gap:2px;">' +
-          '<div>🔖 فرع: <strong>' + esc(iss.branchId || '—') + '</strong></div>' +
-          '<div>📦 طلب: <strong>#' + esc(iss.orderId || '—') + '</strong></div>' +
+        '<div style="font-size:11px;font-weight:800;margin-bottom:2px;">🏪 ' + esc(iss.vendorName || '—') + '</div>' +
+        '<div style="font-size:10px;color:var(--text-2);">' +
+          '🔖 فرع: <strong>' + esc(iss.branchId || '—') + '</strong>' +
+          ' · 📦 #' + esc(iss.orderId || '—') +
         '</div>' +
       '</div>' +
-      '<div class="cb-img-col">' + imgHtml + '</div>' +
+      '<div class="cb-img-col">' + renderImg(iss.imageUrl) + '</div>' +
       '<div class="cb-actions">' +
-        abt('t-oos',     '✅', 'رصيد السيستم = الرصيد الفعلي', k, 'SYSTEM_EQUAL') +
-        abt('t-sub',     '⚠️', 'رصيد الفعلي ≠ السيستم',        k, 'SYSTEM_DIFF') +
-        abt('t-del',     '✏️', 'تعديل اسم المنتج',              k, 'EDIT_NAME') +
-        abt('t-barcode', '🔢', 'تعديل الباركود',                k, 'EDIT_BARCODE') +
-        abt('t-sku',     '🔑', 'تعديل الـ SKU',                  k, 'EDIT_SKU') +
-        abt('t-img',     '📷', 'صورة',                          k, 'IMAGE_ISSUE') +
-        abt('t-note',    '📝', 'ملاحظة',                        k, 'OTHER') +
+        mkBtn('✅', 'رصيد السيستم = الفعلي', k, 'SYSTEM_EQUAL') +
+        mkBtn('⚠️', 'رصيد الفعلي ≠ السيستم',  k, 'SYSTEM_DIFF') +
+        mkBtn('✏️', 'تعديل اسم المنتج',        k, 'EDIT_NAME') +
+        mkBtn('🔢', 'تعديل الباركود',           k, 'EDIT_BARCODE') +
+        mkBtn('🔑', 'تعديل الـ SKU',             k, 'EDIT_SKU') +
+        mkBtn('📷', 'صورة',                      k, 'IMAGE_ISSUE') +
+        mkBtn('📝', 'ملاحظة',                    k, 'OTHER') +
       '</div>' +
     '</div>' +
     '<div class="aip" id="aip_' + k + '"></div>';
@@ -341,75 +446,79 @@ function buildCard(iss) {
   return div;
 }
 
-function abt(cls, icon, label, k, type) {
-  return '<button class="abt ' + cls + '" id="abt_' + k + '_' + type + '" ' +
-    'onclick="toggleAction(\'' + k + '\',\'' + type + '\')">' +
-    '<span><span style="font-size:13px; margin-left:4px;">' + icon + '</span>' + label + '</span>' +
-    '<span id="chk_' + k + '_' + type + '" style="font-weight:900;"></span></button>';
+function mkBtn(icon, label, k, type) {
+  return '<button class="abt" id="abt_' + k + '_' + type + '" onclick="toggleAction(\'' + k + '\',\'' + type + '\')">' +
+    '<span>' + icon + ' ' + label + '</span>' +
+    '<span id="chk_' + k + '_' + type + '" style="font-weight:900;color:var(--success);"></span>' +
+    '</button>';
 }
 
-function toggleAction(k, type) {
-  if (!S.batchSelections[k]) {
-    S.batchSelections[k] = { issueData: S.filtered.find(function(i){ return cKey(i)===k; }), actions: {} };
+function renderImg(url) {
+  if (!url || typeof url !== 'string' || url.indexOf('http') !== 0) {
+    return '<div style="font-size:36px;opacity:0.3;">📦</div>';
   }
+  var p1 = 'https://images.weserv.nl/?url=' + encodeURIComponent(url);
+  return '<img src="' + esc(url) + '" class="center-product-img" referrerpolicy="no-referrer" ' +
+    'onerror="this.onerror=null;this.src=\'' + esc(p1) + '\';" >';
+}
 
-  var currentActions = S.batchSelections[k].actions;
-  var btn = document.getElementById('abt_' + k + '_' + type);
-  var chk = document.getElementById('chk_' + k + '_' + type);
+// ==============================================================================
+// ✅ إجراءات الكروت (Toggle + Inputs)
+// ==============================================================================
+function toggleAction(k, type) {
+  var iss = S.all.find(function(i) { return cKey(i) === k; });
+  if (!iss) return;
 
-  if (currentActions[type]) {
-    delete currentActions[type];
+  if (!S.batchSelections[k]) S.batchSelections[k] = { issueData: iss, actions: {} };
+  var acts = S.batchSelections[k].actions;
+  var btn  = document.getElementById('abt_' + k + '_' + type);
+  var chk  = document.getElementById('chk_' + k + '_' + type);
+
+  if (acts[type]) {
+    delete acts[type];
     if (btn) btn.classList.remove('sel');
     if (chk) chk.textContent = '';
   } else {
-    currentActions[type] = { value: "" };
+    acts[type] = { value: '' };
     if (btn) btn.classList.add('sel');
     if (chk) chk.textContent = '✓';
   }
 
-  renderCardInputs(k);
-  
-  if (Object.keys(currentActions).length === 0) {
+  var card = document.getElementById('icard_' + k);
+  if (Object.keys(acts).length === 0) {
     delete S.batchSelections[k];
-    var card = document.getElementById('icard_' + k);
     if (card) card.style.borderColor = 'transparent';
   } else {
-    var card = document.getElementById('icard_' + k);
     if (card) card.style.borderColor = 'var(--success)';
   }
 
+  renderCardInputs(k);
   updateBatchBarState();
 }
 
 function renderCardInputs(k) {
-  var panel = document.getElementById('aip_' + k);
-  if (!panel || !S.batchSelections[k]) {
-    if (panel) { panel.innerHTML = ''; panel.classList.remove('show'); }
-    return;
-  }
-
-  var actions = S.batchSelections[k].actions;
-  var keys = Object.keys(actions);
-  if (keys.length === 0) {
-    panel.innerHTML = ''; panel.classList.remove('show');
-    return;
+  var panel = document.getElementById('aip_' + k); if (!panel) return;
+  var sel   = S.batchSelections[k];
+  if (!sel || !Object.keys(sel.actions).length) {
+    panel.innerHTML = ''; panel.classList.remove('show'); return;
   }
 
   var html = '';
-  keys.forEach(function(type) {
-    if (type === 'SYSTEM_EQUAL' || type === 'SYSTEM_DIFF' || type === 'IMAGE_ISSUE') {
-      html += '<div style="margin-bottom:8px; background:white; padding:8px; border-radius:6px; border:1px solid var(--border);">' +
-        '<div style="font-size:11px; font-weight:800; margin-bottom:4px; color:var(--primary);">📷 التقاط صورة الكاميرا (إجباري):</div>' +
-        '<input type="file" accept="image/*" capture="environment" style="font-size:11px;" onchange="onCameraCapture(this,\'' + k + '\',\'' + type + '\')">' +
+  Object.keys(sel.actions).forEach(function(type) {
+    if (type === 'SYSTEM_EQUAL') {
+      // لا يحتاج إدخال — مجرد التحديد كافٍ
+      html += '<div style="font-size:11px;color:var(--success);font-weight:800;padding:4px 0;">✅ تم التأكيد: الرصيد مطابق</div>';
+    } else if (type === 'SYSTEM_DIFF' || type === 'IMAGE_ISSUE') {
+      html +=
+        '<div style="margin-bottom:6px;">' +
+        '<div style="font-size:11px;font-weight:800;margin-bottom:4px;color:var(--primary);">📷 صورة الكاميرا (إجباري):</div>' +
+        '<input type="file" accept="image/*" capture="environment" style="font-size:11px;" ' +
+        'onchange="onCameraCapture(this,\'' + k + '\',\'' + type + '\')">' +
         '</div>';
-    } else if (type === 'EDIT_NAME') {
-      html += '<input type="text" style="width:100%; padding:6px; margin-bottom:6px; border:1px solid var(--border); border-radius:4px; font-size:11px;" placeholder="أدخل الاسم الصحيح..." oninput="onInputValue(\'' + k + '\',\'' + type + '\', this.value)">';
-    } else if (type === 'EDIT_BARCODE') {
-      html += '<input type="text" style="width:100%; padding:6px; margin-bottom:6px; border:1px solid var(--border); border-radius:4px; font-size:11px;" placeholder="أدخل الباركود الصحيح..." oninput="onInputValue(\'' + k + '\',\'' + type + '\', this.value)">';
-    } else if (type === 'EDIT_SKU') {
-      html += '<input type="text" style="width:100%; padding:6px; margin-bottom:6px; border:1px solid var(--border); border-radius:4px; font-size:11px;" placeholder="أدخل SKU الصحيح..." oninput="onInputValue(\'' + k + '\',\'' + type + '\', this.value)">';
-    } else if (type === 'OTHER') {
-      html += '<input type="text" style="width:100%; padding:6px; margin-bottom:6px; border:1px solid var(--border); border-radius:4px; font-size:11px;" placeholder="أدخل الملاحظة..." oninput="onInputValue(\'' + k + '\',\'' + type + '\', this.value)">';
+    } else {
+      var ph = { EDIT_NAME: 'الاسم الصحيح...', EDIT_BARCODE: 'الباركود الصحيح...', EDIT_SKU: 'SKU الصحيح...', OTHER: 'الملاحظة...' };
+      html += '<input type="text" class="input-text-cap" placeholder="' + (ph[type] || 'القيمة...') + '" ' +
+        'oninput="onInputValue(\'' + k + '\',\'' + type + '\',this.value)">';
     }
   });
 
@@ -417,14 +526,26 @@ function renderCardInputs(k) {
   panel.classList.add('show');
 }
 
+// ضغط صورة الكاميرا (max 600px)
 function onCameraCapture(input, k, type) {
   var file = input.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    if (S.batchSelections[k] && S.batchSelections[k].actions[type]) {
-      S.batchSelections[k].actions[type].value = e.target.result;
-      updateBatchBarState();
-    }
+    var img = new Image();
+    img.onload = function() {
+      var MAX = 600;
+      var ratio = img.width > MAX ? MAX / img.width : 1;
+      var canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      var compressed = canvas.toDataURL('image/jpeg', 0.75);
+      if (S.batchSelections[k] && S.batchSelections[k].actions[type]) {
+        S.batchSelections[k].actions[type].value = compressed;
+        updateBatchBarState();
+      }
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -436,101 +557,198 @@ function onInputValue(k, type, val) {
   }
 }
 
+// ==============================================================================
+// 📊 شريط الحالة السفلي
+// ==============================================================================
 function updateBatchBarState() {
-  var total = S.filtered.length;
+  var total     = S.filtered.length;
   var completed = 0;
 
   S.filtered.forEach(function(iss) {
-    var k = cKey(iss);
-    var itemSel = S.batchSelections[k];
-    if (itemSel && Object.keys(itemSel.actions).length > 0) {
-      var allValid = true;
-      for (var act in itemSel.actions) {
-        if ((act === 'SYSTEM_EQUAL' || act === 'SYSTEM_DIFF' || act === 'IMAGE_ISSUE') && !itemSel.actions[act].value) {
-          allValid = false;
-        }
+    var k   = cKey(iss);
+    var sel = S.batchSelections[k];
+    if (!sel || !Object.keys(sel.actions).length) return;
+
+    var valid = true;
+    Object.keys(sel.actions).forEach(function(type) {
+      if ((type === 'SYSTEM_DIFF' || type === 'IMAGE_ISSUE') && !sel.actions[type].value) {
+        valid = false;
       }
-      if (allValid) completed++;
-    }
+    });
+    if (valid) completed++;
   });
 
   var remaining = total - completed;
+  setTxt('summaryTotalCount',    total);
+  setTxt('summaryUpdatedCount',  completed);
+  setTxt('summaryRemainingCount', remaining);
+  setTxt('batchTotalCount',      total);
+  setTxt('batchCompletedCount',  completed);
 
-  document.getElementById('summaryTotalCount').textContent = total;
-  document.getElementById('summaryUpdatedCount').textContent = completed;
-  document.getElementById('summaryRemainingCount').textContent = remaining;
-
-  var statusTag = document.getElementById('branchStatusTag');
-  if (total > 0 && completed === total) {
-    statusTag.textContent = 'DONE ✅';
-    statusTag.classList.add('is-done');
-  } else {
-    statusTag.textContent = 'PENDING ⏳';
-    statusTag.classList.remove('is-done');
+  var tag = document.getElementById('branchStatusTag');
+  if (tag) {
+    if (total > 0 && completed === total) { tag.textContent = 'DONE ✅'; tag.classList.add('is-done'); }
+    else { tag.textContent = 'PENDING ⏳'; tag.classList.remove('is-done'); }
   }
 
-  document.getElementById('batchTotalCount').textContent = total;
-  document.getElementById('batchCompletedCount').textContent = completed;
-
-  var submitBtn = document.getElementById('btnBatchSubmit');
-  submitBtn.disabled = (completed < total || total === 0);
+  var btn = document.getElementById('btnBatchSubmit');
+  if (btn) btn.disabled = (completed === 0);
 }
 
+// ==============================================================================
+// 🚀 إرسال الفيدباك المجمع (POST)
+// ==============================================================================
 function submitBatchTasks() {
-  var payload = [];
-  var missingCamera = false;
+  var payload     = [];
+  var missingPhoto = false;
 
   S.filtered.forEach(function(iss) {
-    var k = cKey(iss);
-    var itemSel = S.batchSelections[k];
-    if (itemSel) {
-      for (var actType in itemSel.actions) {
-        var actObj = itemSel.actions[actType];
-        if ((actType === 'SYSTEM_EQUAL' || actType === 'SYSTEM_DIFF' || actType === 'IMAGE_ISSUE') && !actObj.value) {
-          missingCamera = true;
-        }
-        payload.push({
-          issueData: iss,
-          actionType: actType,
-          actionValue: actObj.value || ""
-        });
+    var k   = cKey(iss);
+    var sel = S.batchSelections[k];
+    if (!sel) return;
+
+    Object.keys(sel.actions).forEach(function(type) {
+      var val = sel.actions[type].value;
+      if ((type === 'SYSTEM_DIFF' || type === 'IMAGE_ISSUE') && !val) {
+        missingPhoto = true;
       }
-    }
+      payload.push({ issueData: iss, actionType: type, actionValue: val || '' });
+    });
   });
 
-  if (missingCamera) {
-    toast('عفواً! يلزم التقاط صورة بالكاميرا لخيارات الرصيد والصورة', 'err');
-    return;
-  }
+  if (missingPhoto) { toast('⚠️ يلزم التقاط صورة لخيارات الرصيد والصورة', 'err'); return; }
+  if (!payload.length) { toast('لم يتم تحديد أي إجراء', 'err'); return; }
 
-  if (payload.length < S.filtered.length) {
-    toast('عفواً! يجب تحديد الفيدباك لكل الكروت المعروضة أولاً', 'err');
-    return;
-  }
+  var btn = document.getElementById('btnBatchSubmit');
+  if (btn) btn.disabled = true;
+  showLoader(); setLoaderText('جاري إرسال ' + payload.length + ' إجراء...');
 
-  showLoader();
-
-  callAPI("submitBatchFeedback", { items: payload }, function(err, res) {
+  callAPI('submitBatchFeedback', { items: payload }, function(err, res) {
     hideLoader();
-    if (res && res.status === 'success') {
-      toast('🎉 تم إرسال وترحيل جميع الفيدباك بنجاح!', 'ok');
-      loadData();
+    if (btn) btn.disabled = false;
+
+    if (!err && res && res.status === 'success') {
+      toast('🎉 تم إرسال جميع الفيدباك بنجاح!', 'ok');
+      showFeedbackSummary(payload.length);
+      S.batchSelections = {};
+      setTimeout(function() { loadData(); }, 1800);
     } else {
-      toast('حدث خطأ أثناء الإرسال', 'err');
+      toast('حدث خطأ أثناء الإرسال ⚠️', 'err');
     }
   });
 }
 
-function doLogout() { location.reload(); }
-function cKey(iss) { return (iss.orderId + '_' + iss.itemSku).replace(/[^a-zA-Z0-9_]/g, '_'); }
-function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function toast(msg, type) {
-  var wrap = document.getElementById('toastWrap'); var t = document.createElement('div');
-  t.className = 'toast ' + (type || 'inf'); t.textContent = msg; wrap.appendChild(t);
-  setTimeout(function() { t.remove(); }, 3000);
+// ملخص مرئي بعد الإرسال
+function showFeedbackSummary(count) {
+  var html =
+    '<div id="summaryModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;">' +
+    '<div style="background:white;border-radius:20px;padding:32px 24px;max-width:340px;width:100%;text-align:center;">' +
+    '<div style="font-size:56px;margin-bottom:8px;">🎉</div>' +
+    '<h3 style="font-size:18px;font-weight:900;margin-bottom:6px;">تم إرسال الفيدباك!</h3>' +
+    '<p style="font-size:13px;color:var(--text-2);margin-bottom:20px;">تم تسجيل <strong>' + count + '</strong> إجراء وترحيله للشيت بنجاح.</p>' +
+    '<button onclick="document.getElementById(\'summaryModal\').remove()" ' +
+    'style="width:100%;padding:12px;background:var(--primary);color:white;border:none;border-radius:var(--r-sm);font-family:\'Cairo\';font-weight:900;font-size:14px;cursor:pointer;">' +
+    '← العودة للعمل' +
+    '</button>' +
+    '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+  setTimeout(function() { var m = document.getElementById('summaryModal'); if (m) m.remove(); }, 6000);
 }
-function show(id) { document.getElementById(id).style.display = 'flex'; }
-function hide(id) { document.getElementById(id).style.display = 'none'; }
-function showLoader() { document.getElementById('globalLoader').style.display = 'flex'; }
-function hideLoader() { document.getElementById('globalLoader').style.display = 'none'; }
-function setLoaderText(t) { document.getElementById('loaderText').textContent = t; }
+
+// ==============================================================================
+// 👑 لوحة تحليلات المدير
+// ==============================================================================
+function openAdminDashboardModal() {
+  document.getElementById('adminDashboardModal').classList.add('on');
+  showLoader(); setLoaderText('جاري تحميل التحليلات...');
+
+  callAPI('getAdminAnalytics', { email: S.userEmail }, function(err, data) {
+    hideLoader();
+    if (err || !data || data.status === 'unauthorized') {
+      toast('غير مصرح بعرض التحليلات', 'err'); return;
+    }
+
+    setTxt('dashKpiTotal',     data.kpis.total);
+    setTxt('dashKpiPending',   data.kpis.pending);
+    setTxt('dashKpiCompleted', data.kpis.completed);
+    setTxt('dashKpiRate',      (data.kpis.completionRate || 0) + '%');
+
+    // إحصائيات الفريق
+    var teamBody = document.getElementById('dashTeamBody');
+    if (teamBody) {
+      teamBody.innerHTML = '';
+      var stats = data.teamStats || {};
+      Object.keys(stats).forEach(function(champ) {
+        var st  = stats[champ];
+        var tot = (st.pending || 0) + (st.completed || 0);
+        var rt  = tot > 0 ? Math.round((st.completed / tot) * 100) : 0;
+        teamBody.innerHTML +=
+          '<tr style="border-top:1px solid var(--border);">' +
+          '<td style="padding:5px 8px;"><strong>' + esc(champ) + '</strong></td>' +
+          '<td style="color:var(--warning);">' + (st.pending || 0) + '</td>' +
+          '<td style="color:var(--success);">' + (st.completed || 0) + '</td>' +
+          '<td><strong>' + rt + '%</strong></td></tr>';
+      });
+    }
+
+    // آخر الإجراءات
+    var auditBody = document.getElementById('dashAuditBody');
+    if (auditBody) {
+      auditBody.innerHTML = '';
+      (data.recentAuditLogs || []).forEach(function(log) {
+        auditBody.innerHTML +=
+          '<tr style="border-top:1px solid var(--border);">' +
+          '<td style="padding:4px 8px;">' + esc(log.feedbackDate || '') + '</td>' +
+          '<td><strong>' + esc(log.champ || '') + '</strong></td>' +
+          '<td>#' + esc(log.orderId || '') + '</td>' +
+          '<td>' + esc(log.actionType || '') + '</td></tr>';
+      });
+    }
+
+    // سجل الحضور
+    var loginBody = document.getElementById('dashLoginBody');
+    if (loginBody) {
+      loginBody.innerHTML = '';
+      (data.loginLogs || []).forEach(function(l) {
+        var imgHtml = (l.photo && l.photo.indexOf('data:image') === 0)
+          ? '<img src="' + l.photo + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--primary);">'
+          : '—';
+        loginBody.innerHTML +=
+          '<tr style="border-top:1px solid var(--border);">' +
+          '<td style="padding:4px 8px;">' + esc(l.timestamp || '') + '</td>' +
+          '<td><strong>' + esc(l.name || '') + '</strong></td>' +
+          '<td>' + imgHtml + '</td></tr>';
+      });
+    }
+  });
+}
+
+function closeAdminDashboardModal() {
+  document.getElementById('adminDashboardModal').classList.remove('on');
+}
+
+// ==============================================================================
+// 🛠️ دوال مساعدة
+// ==============================================================================
+function cKey(iss) {
+  return (String(iss.orderId || '') + '_' + String(iss.itemSku || '')).replace(/[^a-zA-Z0-9]/g, '_');
+}
+function esc(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function setTxt(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+function show(id) { var el = document.getElementById(id); if (el) el.style.display = 'flex'; }
+function hide(id) { var el = document.getElementById(id); if (el) el.style.display = 'none'; }
+function showLoader() { var el = document.getElementById('globalLoader'); if (el) el.style.display = 'flex'; }
+function hideLoader() { var el = document.getElementById('globalLoader'); if (el) el.style.display = 'none'; }
+function setLoaderText(t) { var el = document.getElementById('loaderText'); if (el) el.textContent = t; }
+
+function toast(msg, type) {
+  var wrap = document.getElementById('toastWrap'); if (!wrap) return;
+  var t = document.createElement('div');
+  t.className = 'toast ' + (type || 'inf'); t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(function() { if (t.parentNode) t.remove(); }, 3200);
+}
