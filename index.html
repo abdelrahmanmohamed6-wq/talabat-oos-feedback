@@ -5,168 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="referrer" content="no-referrer">
   <title>Talabat OOS – بوابة الفيدباك</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <style>
-    :root {
-      --primary:        #FF6200;
-      --primary-light:  #FF8533;
-      --primary-dark:   #D94F00;
-      --primary-bg:     #FFF3EC;
-      --bg:     #F5F5F5;
-      --card:   #FFFFFF;
-      --text:   #1A1A1A;
-      --text-2: #6B7280;
-      --border: #E5E7EB;
-      --success:     #10B981;
-      --success-bg:  #ECFDF5;
-      --warning:     #F59E0B;
-      --warning-bg:  #FFFBEB;
-      --error:       #EF4444;
-      --error-bg:    #FEF2F2;
-      --info:        #3B82F6;
-      --info-bg:     #EFF6FF;
-      --purple:      #8B5CF6;
-      --purple-bg:   #F5F3FF;
-      --r:      12px;
-      --r-sm:   8px;
-      --r-lg:   18px;
-      --r-full: 9999px;
-      --shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    body {
-      font-family: 'Cairo', system-ui, sans-serif;
-      background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden;
-    }
-
-    #globalLoader {
-      position: fixed; inset: 0; background: var(--primary);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 9999; color: white;
-    }
-    .loader-bar-wrap { width: 160px; height: 4px; background: rgba(255,255,255,0.3); border-radius: var(--r-full); overflow: hidden; margin-top: 16px; }
-    .loader-bar { height: 100%; background: white; border-radius: var(--r-full); animation: animBar 1.2s ease-in-out infinite alternate; }
-    @keyframes animBar { from { width: 20%; } to { width: 90%; } }
-
-    #loginScreen { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 20px; background: var(--primary); }
-    .login-card { background: white; border-radius: 24px; padding: 36px 28px; width: 100%; max-width: 400px; text-align: center; }
-
-    #authErrorMsg {
-      display: none;
-      background: var(--error-bg);
-      color: var(--error);
-      padding: 12px 16px;
-      border-radius: var(--r-sm);
-      border: 1.5px solid var(--error);
-      font-size: 12px;
-      font-weight: 700;
-      margin-top: 20px;
-      line-height: 1.6;
-    }
-
-    #appScreen { display: none; flex-direction: column; min-height: 100vh; }
-    #appScreen.on { display: flex; }
-
-    .app-header { background: white; border-bottom: 1px solid var(--border); padding: 0 16px; position: sticky; top: 0; z-index: 200; }
-    .header-row { display: flex; align-items: center; justify-content: space-between; height: 56px; }
-    .brand { display: flex; align-items: center; gap: 8px; }
-    .brand-icon { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
-
-    .branch-summary-bar {
-      background: #1E293B; color: white; padding: 10px 16px;
-      display: flex; align-items: center; justify-content: space-between;
-      font-size: 12px; font-weight: 700; border-bottom: 1px solid var(--border);
-    }
-    .branch-status-tag {
-      background: var(--warning); color: white; padding: 3px 10px;
-      border-radius: var(--r-full); font-size: 11px; font-weight: 900;
-    }
-    .branch-status-tag.is-done { background: var(--success); }
-
-    .filter-strip { padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap; background: white; border-bottom: 1px solid var(--border); }
-    .f-select { flex: 1; min-width: 120px; max-width: 180px; padding: 8px; border: 1.5px solid var(--border); border-radius: var(--r-sm); font-family: 'Cairo'; font-size: 12px; }
-
-    .items-wrap { flex: 1; padding: 12px 16px 140px; overflow-y: auto; }
-    .items-list { display: flex; flex-direction: column; gap: 12px; }
-
-    .icard { background: white; border-radius: var(--r); box-shadow: var(--shadow); border: 1.5px solid transparent; overflow: hidden; position: relative; transition: border-color 0.2s; }
-    .ch { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--primary-bg); border-bottom: 1px solid var(--border); }
-    .ch-date { font-size: 11px; color: var(--primary-dark); font-weight: 700; }
-    .ch-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: var(--r-full); }
-    .p-active { background: var(--warning-bg); color: var(--warning); }
-
-    .cb { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
-    .cb-info { direction: rtl; width: 100%; }
-    /* ستايل جديد لبوكس الـ Chain ID داخل الكرت */
-    .cb-chain-info { font-size:11px; font-weight:800; color:var(--text-2); margin-bottom:4px; background:#f1f5f9; padding:3px 6px; border-radius:4px; display:inline-block; }
-    .cb-item-name { font-size: 13px; font-weight: 800; color: var(--text); background: var(--primary-bg); padding: 6px 9px; border-radius: var(--r-sm); margin-bottom: 6px; border-right: 3px solid var(--primary); }
-    .cb-sku { font-size: 10px; color: var(--text-2); font-family: monospace; margin-bottom: 6px; }
-    .cb-img-col { display: flex; align-items: center; justify-content: center; padding: 8px; border: 1px solid var(--border); border-radius: var(--r-sm); min-height: 180px; background: #FAFAFA; width: 100%; }
-    .center-product-img { max-width: 100%; max-height: 220px; object-fit: contain; border-radius: var(--r-sm); }
-    .cb-actions { direction: rtl; display: flex; flex-direction: column; gap: 5px; width: 100%; }
-
-    .abt { width: 100%; padding: 8px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: white; font-family: 'Cairo'; font-size: 11px; font-weight: 700; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
-    .abt:hover { background: var(--bg); }
-    .abt.sel { border-width: 2px; border-color: var(--primary); background: var(--primary-bg); }
-
-    .aip { padding: 12px; border-top: 1px dashed var(--border); background: #FAFAFA; display: none; }
-    .aip.show { display: block; animation: slideDown 0.3s ease; }
-    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-    .input-text-cap { width: 100%; padding: 8px; border: 1.5px solid var(--border); border-radius: var(--r-sm); font-family: 'Cairo'; font-size: 12px; margin-bottom: 6px; }
-    .input-text-cap:focus { outline: none; border-color: var(--primary); }
-
-    .batch-bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 2px solid var(--primary); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 -4px 16px rgba(0,0,0,0.1); z-index: 300; }
-    .btn-batch-submit { flex: 1; padding: 13px; background: var(--primary); color: white; border: none; border-radius: var(--r-sm); font-family: 'Cairo'; font-size: 15px; font-weight: 900; cursor: pointer; transition: 0.2s; }
-    .btn-batch-submit:disabled { background: #CBD5E1; cursor: not-allowed; opacity: 0.7; }
-    .btn-batch-submit:not(:disabled):hover { background: var(--primary-dark); }
-
-    #adminDashboardModal { display: none; position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(2px); }
-    #adminDashboardModal.on { display: flex; }
-    .dash-box { background: white; border-radius: var(--r-lg); padding: 24px; width: 100%; max-width: 850px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
-    .dash-kpi { background: var(--bg); padding: 12px; border-radius: var(--r-sm); text-align: center; border: 1px solid var(--border); }
-
-    #toastWrap { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 6px; pointer-events: none; width: 90%; max-width: 360px; }
-    .toast { padding: 10px 14px; border-radius: var(--r-sm); font-size: 12px; font-weight: 700; color: white; text-align: center; box-shadow: var(--shadow); animation: toastIn 0.3s ease, toastOut 0.3s ease 2.9s; }
-    @keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    @keyframes toastOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(20px); opacity: 0; } }
-    .toast.ok { background: var(--success); }
-    .toast.err { background: var(--error); }
-    .toast.inf { background: var(--primary); }
-
-    .sf-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter: blur(2px); }
-    .sf-box { background:white; border-radius:var(--r-lg); padding:24px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .sf-field { margin-bottom:14px; }
-    .sf-label { display:block; font-size:12px; font-weight:800; margin-bottom:5px; color:var(--text); }
-    .sf-input { width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:var(--r-sm); font-family:'Cairo'; font-size:12px; }
-    .sf-input:focus { outline:none; border-color:var(--primary); }
-
-    @media (min-width: 681px) {
-      .cb { display: grid; grid-template-columns: 28% 34% 38%; direction: ltr; gap: 0; }
-      .cb-info { order: 3; padding: 12px 14px 12px 8px; min-width: 0; word-break: break-word; overflow-wrap: break-word; text-align: right; }
-      .cb-img-col { order: 2; border-radius: 0; border-y: none; }
-      .cb-actions { order: 1; min-width: 0; padding: 12px; }
-      .cb-item-name { white-space: normal; word-break: break-word; }
-      .cb-sku { white-space: normal; }
-    }
-  </style>
 </head>
 <body>
 
+<!-- ══════════════════════════════════════════════════
+     GLOBAL LOADER
+════════════════════════════════════════════════════ -->
 <div id="globalLoader">
-  <div style="font-size:48px; margin-bottom:12px;">💉</div>
-  <div style="font-size:18px; font-weight:900; letter-spacing:1px;">TALABAT OOS</div>
+  <div style="font-size:52px; margin-bottom:12px;">🛒</div>
+  <div style="font-size:20px; font-weight:900; letter-spacing:1px;">TALABAT OOS</div>
+  <div id="loaderText" style="font-size:12px; margin-top:8px; opacity:0.85;"></div>
   <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
 </div>
 
+<!-- ══════════════════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════════════════════ -->
 <div id="loginScreen">
   <div class="login-card">
-    <div style="font-size:44px; margin-bottom:12px;">💉</div>
+    <div style="font-size:52px; margin-bottom:12px;">🛒</div>
     <h1 style="font-size:22px; font-weight:900; margin-bottom:4px;">بوابة الفيدباك</h1>
     <p style="font-size:12px; color:var(--text-2); margin-bottom:28px;">Talabat OOS Mapping · تسجيل الدخول بحساب Google</p>
+
+    <!-- زر Google Sign-In -->
     <div id="g_id_onload"
          data-client_id="397053555500-0kavau822uibedcefps41h4ibg7iueu7.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
@@ -182,11 +46,18 @@
          data-logo_alignment="left"
          data-width="280">
     </div>
+
+    <!-- رسالة الخطأ (مخفية بالافتراضي) -->
     <div id="authErrorMsg"></div>
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════
+     APP SCREEN
+════════════════════════════════════════════════════ -->
 <div id="appScreen">
+
+  <!-- ── Header ── -->
   <header class="app-header">
     <div class="header-row">
       <div class="brand">
@@ -194,1171 +65,163 @@
         <div style="font-weight:900; font-size:14px;">OOS Feedback</div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
-        <button id="btnDashTrigger" style="display:none; background:#0F172A; color:white; border:none; padding:5px 12px; border-radius:20px; font-size:11px; font-weight:800; cursor:pointer;" onclick="openAdminDashboardModal()">📊 التحليلات</button>
-        <span id="headerName" style="font-size:12px; font-weight:800; background:var(--primary-bg); color:var(--primary); padding:4px 10px; border-radius:20px;">-</span>
-        <button onclick="doLogout()" style="border:none; background:none; cursor:pointer; font-size:16px;" title="تسجيل الخروج">⬅️</button>
+        <button id="btnDashTrigger" onclick="openAdminDashboardModal()">📊 التحليلات</button>
+        <span id="headerName">-</span>
+        <button onclick="doLogout()" style="border:none; background:none; cursor:pointer; font-size:18px;" title="خروج">⬅️</button>
       </div>
     </div>
   </header>
 
+  <!-- ── Admin Filter Bar (المدراء فقط) ── -->
+  <div id="adminFilterBar" class="admin-filter-bar">
+    <span style="font-size:12px; font-weight:800; white-space:nowrap;">👁️ عرض بيانات:</span>
+    <select id="adminUserSelect" class="admin-user-select" onchange="adminLoadSelected()">
+      <option value="__ALL__">— كل أعضاء الفريق —</option>
+    </select>
+    <button onclick="loadData()"
+      style="padding:6px 14px; border:1px solid var(--primary); border-radius:var(--r-sm); background:var(--primary-bg); color:var(--primary); font-weight:800; cursor:pointer; font-size:12px; font-family:'Cairo';">
+      🔄 تحديث
+    </button>
+  </div>
+
+  <!-- ── Branch Summary Bar ── -->
   <div class="branch-summary-bar">
-    <div>إجمالي: <span id="summaryTotalCount" style="color:var(--primary-light);">0</span> | محدّث: <span id="summaryUpdatedCount" style="color:var(--success);">0</span></div>
+    <div>
+      إجمالي: <span id="summaryTotalCount"   style="color:var(--primary-light); font-weight:900;">0</span>
+      &nbsp;·&nbsp;
+      محدّث: <span id="summaryUpdatedCount"  style="color:var(--success); font-weight:900;">0</span>
+      &nbsp;·&nbsp;
+      باقي: <span id="summaryRemainingCount" style="color:var(--warning); font-weight:900;">0</span>
+    </div>
     <div id="branchStatusTag" class="branch-status-tag">PENDING ⏳</div>
   </div>
 
+  <!-- ── Filter Strip (4 فلاتر مترابطة) ── -->
   <div class="filter-strip">
-    <!-- فلاتر مترابطة جديدة -->
-    <select id="fChain" class="f-select" onchange="onChainFilterChange()"><option value="">كل الـ Chains</option></select>
-    <select id="fVendor" class="f-select" onchange="applyFilters()"><option value="">كل الفروع</option></select>
-    <select id="fBranch" class="f-select" onchange="applyFilters()"><option value="">كل IDs</option></select>
-    <button onclick="clearFilters()" style="padding:6px 12px; border:1px solid var(--border); border-radius:var(--r-sm); background:white; font-size:11px; cursor:pointer;" title="مسح الفلاتر">✕ مسح</button>
+    <select id="fChainName" class="f-select" onchange="applyFilters()">
+      <option value="">كل Chain Name</option>
+    </select>
+    <select id="fChainId" class="f-select" onchange="applyFilters()">
+      <option value="">كل Chain ID</option>
+    </select>
+    <select id="fVendor" class="f-select" onchange="applyFilters()">
+      <option value="">كل الفروع</option>
+    </select>
+    <select id="fBranch" class="f-select" onchange="applyFilters()">
+      <option value="">كل Vendor IDs</option>
+    </select>
+    <button onclick="clearFilters()" class="btn-clear-filter">✕ مسح</button>
   </div>
 
+  <!-- ── Items List ── -->
   <main class="items-wrap">
     <div id="itemsList" class="items-list"></div>
-    <div id="emptyState" style="display:none; text-align:center; padding:60px 20px;">
-      <div style="font-size:48px;">🎉</div>
-      <div style="font-size:16px; font-weight:800; margin-top:8px;">أحسنت! كل العناصر مكتملة</div>
-      <p style="font-size:12px; color:var(--text-2); margin-top:4px;">لا توجد نواقص معلقة بناءً على الفلترة الحالية.</p>
+    <div id="emptyState">
+      <div style="font-size:52px;">🎉</div>
+      <div style="font-size:16px; font-weight:800; margin-top:10px;">أحسنت! كل العناصر مكتملة</div>
+      <p style="font-size:12px; color:var(--text-2); margin-top:6px;">لا توجد نواقص معلقة بناءً على الفلترة الحالية.</p>
     </div>
   </main>
 
+  <!-- ── Batch Bottom Bar ── -->
   <div class="batch-bottom-bar">
-    <div style="font-size:12px; font-weight:700;">مكتمل: <span id="batchCompletedCount" style="color:var(--primary); font-size:16px; font-weight:900;">0</span> / <span id="batchTotalCount">0</span></div>
-    <button class="btn-batch-submit" id="btnBatchSubmit" onclick="submitBatchTasks()" disabled>🚀 إرسال الفيدباك المجمع</button>
+    <div style="font-size:12px; font-weight:700;">
+      مكتمل: <span id="batchCompletedCount" style="color:var(--primary); font-size:18px; font-weight:900;">0</span>
+      / <span id="batchTotalCount" style="font-size:14px;">0</span>
+    </div>
+    <button class="btn-batch-submit" id="btnBatchSubmit" onclick="submitBatchTasks()" disabled>
+      🚀 إرسال الفيدباك المجمع
+    </button>
   </div>
-</div>
 
-<!-- مودال التحليلات (Admin Only) -->
+</div><!-- end #appScreen -->
+
+<!-- ══════════════════════════════════════════════════
+     ADMIN DASHBOARD MODAL
+════════════════════════════════════════════════════ -->
 <div id="adminDashboardModal">
   <div class="dash-box">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:16px;">
-      <h3 style="font-weight:900; font-size:16px;">👑 لوحة تحليلات المدير</h3>
-      <button onclick="closeAdminDashboardModal()" style="border:none; background:var(--bg); padding:5px 10px; border-radius:var(--r-sm); font-weight:800; cursor:pointer;">✕</button>
+
+    <div class="dash-header">
+      <h3>👑 لوحة تحليلات المدير</h3>
+      <button onclick="closeAdminDashboardModal()">✕ إغلاق</button>
     </div>
+
+    <!-- KPIs -->
     <div class="dash-grid">
-      <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--primary);" id="dashKpiTotal">0</div><div style="font-size:10px;color:var(--text-2);">إجمالي</div></div>
-      <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--warning);" id="dashKpiPending">0</div><div style="font-size:10px;color:var(--text-2);">معلّق</div></div>
-      <div class="dash-kpi"><div style="font-size:20px;font-weight:900;color:var(--success);" id="dashKpiCompleted">0</div><div style="font-size:10px;color:var(--text-2);">مكتمل</div></div>
+      <div class="dash-kpi">
+        <div style="font-size:24px; font-weight:900; color:var(--primary);"   id="dashKpiTotal">0</div>
+        <div style="font-size:10px; color:var(--text-2);">الإجمالي</div>
+      </div>
+      <div class="dash-kpi">
+        <div style="font-size:24px; font-weight:900; color:var(--warning);"   id="dashKpiPending">0</div>
+        <div style="font-size:10px; color:var(--text-2);">معلّق</div>
+      </div>
+      <div class="dash-kpi">
+        <div style="font-size:24px; font-weight:900; color:var(--success);"   id="dashKpiCompleted">0</div>
+        <div style="font-size:10px; color:var(--text-2);">مكتمل</div>
+      </div>
+      <div class="dash-kpi">
+        <div style="font-size:24px; font-weight:900; color:var(--info);"      id="dashKpiRate">0%</div>
+        <div style="font-size:10px; color:var(--text-2);">نسبة الإنجاز</div>
+      </div>
     </div>
-    <h4 style="font-weight:800;font-size:13px;margin-top:16px;">🕒 آخر الإجراءات (50)</h4>
-    <div style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);margin-top:6px;">
-      <table id="dashAuditTable" style="width:100%;border-collapse:collapse;font-size:11px;text-align:right;">
-        <thead style="background:var(--bg); position:sticky; top:0;"><tr><th style="padding:4px;">الوقت</th><th>الموظف</th><th>الطلب</th><th>الإجراء</th></tr></thead>
-        <tbody></tbody>
+
+    <!-- إحصائيات الفريق -->
+    <h4 style="font-weight:800; font-size:13px; margin-top:16px;">👥 إحصائيات الفريق</h4>
+    <div style="max-height:140px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">
+      <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:right;">
+        <thead style="background:var(--bg); position:sticky; top:0;">
+          <tr>
+            <th style="padding:5px 8px;">الموظف</th>
+            <th>معلّق</th>
+            <th>مكتمل</th>
+            <th>نسبة</th>
+          </tr>
+        </thead>
+        <tbody id="dashTeamBody"></tbody>
       </table>
     </div>
-    <h4 style="font-weight:800;font-size:13px;margin-top:16px;">📸 سجل الحضور (100)</h4>
-    <div style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);margin-top:6px;">
-      <table id="dashTrackerTable" style="width:100%;border-collapse:collapse;font-size:11px;text-align:right;">
-        <thead style="background:var(--bg); position:sticky; top:0;"><tr><th style="padding:4px;">الوقت</th><th>الموظف</th><th>الصورة</th><th>مكتمل/باقي</th></tr></thead>
-        <tbody></tbody>
+
+    <!-- آخر الإجراءات -->
+    <h4 style="font-weight:800; font-size:13px; margin-top:16px;">🕒 آخر الإجراءات (50)</h4>
+    <div style="max-height:170px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">
+      <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:right;">
+        <thead style="background:var(--bg); position:sticky; top:0;">
+          <tr>
+            <th style="padding:5px 8px;">الوقت</th>
+            <th>الموظف</th>
+            <th>الطلب</th>
+            <th>الإجراء</th>
+          </tr>
+        </thead>
+        <tbody id="dashAuditBody"></tbody>
       </table>
     </div>
+
+    <!-- سجل الحضور -->
+    <h4 style="font-weight:800; font-size:13px; margin-top:16px;">📸 سجل الحضور (100)</h4>
+    <div style="max-height:170px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--r-sm); margin-top:6px;">
+      <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:right;">
+        <thead style="background:var(--bg); position:sticky; top:0;">
+          <tr>
+            <th style="padding:5px 8px;">الوقت</th>
+            <th>الموظف</th>
+            <th>الصورة</th>
+          </tr>
+        </thead>
+        <tbody id="dashLoginBody"></tbody>
+      </table>
+    </div>
+
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════
+     TOASTS
+════════════════════════════════════════════════════ -->
 <div id="toastWrap"></div>
 
-<script>
-// ==============================================================================
-// 🔧 محرك الاتصالات الأساسي (Final Version)
-// ==============================================================================
-
-// ⚠️ استبدل هذا الرابط برابط الـ Deployment الجديد من Google Apps Script
-var API_URL = "https://script.google.com/macros/s/AKfycbzL7h_VfV_m_Sshf5R5_44O7G_Y0_K_m_T-8N_S_A/exec";
-
-// حالة التطبيق الجارية
-var S = { 
-  user: null, userEmail: null, isOwner: false, currentToken: null, 
-  all: [], filtered: [], batchSelections: {}, location: null 
-};
-var _chainMap = {}; // تخزين خريطة الـ chains للفلترة المترابطة
-
-// إدارة الكاش والدورة
-var _SKEY = 'oos_sess'; var _STTL = 6 * 60 * 60 * 1000; // 6 ساعات
-function readCache() { try { var c = JSON.parse(localStorage.getItem(_SKEY)); return (c && (Date.now() - c.ts) < _STTL) ? c : null; } catch(e) { return null; } }
-function writeCache(sess) { try { localStorage.setItem(_SKEY, JSON.stringify({name:sess.name, email:sess.email, isOwner:sess.isOwner, ts:Date.now()})); } catch(e) {} }
-function clearCache() { localStorage.removeItem(_SKEY); }
-
-function parseJwt(token) { try { return JSON.parse(decodeURIComponent(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(function(c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join(''))); } catch(e) { return null; } }
-
-// 🌐 محرك الاتصالات المزدوج (POST للصور / JSONP للقراءة)
-function callAPI(action, payload, callback) {
-  var postActions = ['recordUserLogin', 'submitBatchFeedback', 'submitBranchSummary'];
-  
-  // تجميع البيانات الأساسية
-  var finalPayload = payload || {};
-  if (S.currentToken) finalPayload.id_token = S.currentToken;
-
-  if (postActions.indexOf(action) !== -1) {
-    // 🚀 استخدام POST للبيانات الثقيلة (الصور)
-    fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: action, payload: finalPayload })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) { if (callback) callback(null, data); })
-    .catch(function(err) { console.error('POST Error:', err); if (callback) callback(err, null); });
-    return;
-  }
-
-  // 📝 استخدام JSONP GET للقراءة السريعة (تجنب CORS)
-  var cbName = 'jsonp_' + Math.round(1e6 * Math.random());
-  var timeout = setTimeout(function() { 
-    if(window[cbName]) { delete window[cbName]; toast('انتهت مهلة الاتصال ⌛', 'err'); if (callback) callback(new Error('Timeout'), null); }
-  }, 45000);
-
-  window[cbName] = function(data) {
-    clearTimeout(timeout);
-    var el = document.getElementById(cbName);
-    if (el && el.parentNode) el.parentNode.removeChild(el);
-    delete window[cbName];
-    if (callback) callback(null, data);
-  };
-
-  var script = document.createElement('script');
-  script.id = cbName;
-  // تكوين الرابط مع اسم الـ callback
-  script.src = API_URL + '?action=' + action +
-    '&payload=' + encodeURIComponent(JSON.stringify(finalPayload)) +
-    '&callback=' + cbName;
-  script.onerror = function() { 
-    clearTimeout(timeout); 
-    if (callback) callback(new Error('Network Error'), null);
-    toast('فشل الاتصال بالخادم 🌐', 'err');
-  };
-  document.body.appendChild(script);
-}
-
-// 🎬 بدء التشغيل
-document.addEventListener('DOMContentLoaded', function() {
-  var cached = readCache();
-  if (cached) { S.user = cached.name; S.userEmail = cached.email; S.isOwner = cached.isOwner; loadData(); }
-  else { hideLoader(); show('loginScreen'); }
-});
-
-// ==============================================================================
-// 🔐 نظام الدخول والأمان (Location + Selfie)
-// ==============================================================================
-function handleCredentialResponse(response) {
-  S.currentToken = response.credential;
-  var tokenData = parseJwt(response.credential);
-  if (!tokenData || !tokenData.email) { showAuthError('تعذر قراءة بيانات الحساب من Google'); return; }
-  
-  showLoader();
-  setLoaderText('جاري التحقق من صلاحيات الدخول...');
-  
-  // 1. التحقق من الإيميل أولاً
-  callAPI('verifyUserAuth', { email: tokenData.email }, function(err, res) {
-    hideLoader();
-    if (err || !res) { showAuthError('فشل الاتصال. تحقق من الإنترنت'); return; }
-    if (!res.isAuthorized) { showAuthError('🚫 ' + (res.message || 'هذا الحساب غير مصرح له')); return; }
-    
-    clearAuthError();
-    S.user = res.name; S.userEmail = res.email; S.isOwner = res.isOwner;
-    writeCache(res); // حفظ الجلسة مؤقتاً
-    
-    // المدراء يدخلون مباشرة، الموظفون يحتاجون لوكيشن وصورة
-    if (S.isOwner) { loadData(); }
-    else { requestLocationThenSelfie(); }
-  });
-}
-
-// طلب الموقع الجغرافي
-function requestLocationThenSelfie() {
-  if (!navigator.geolocation) { toast('متصفحك لا يدعم تحديد الموقع 📍', 'err'); showSelfieModal(); return; }
-  
-  setLoaderText('جاري تحديد موقعك الجغرافي...');
-  showLoader();
-
-  navigator.geolocation.getCurrentPosition(
-    function(pos) {
-      hideLoader();
-      var lat = pos.coords.latitude, lng = pos.coords.longitude;
-      // دقة الموقع (Accuracy) مهمة لكشف الـ Fake Location مستقبلاً
-      S.location = { 
-        lat: lat, lng: lng, 
-        accuracy: Math.round(pos.coords.accuracy), 
-        mapsUrl: 'https://www.google.com/maps?q=' + lat + ',' + lng 
-      };
-      showSelfieModal();
-    },
-    function(error) {
-      hideLoader();
-      // حتى لو فشل اللوكيشن، نسمح بالدخول لكن سيسجل بدونه (سياسة قابلة للتغيير)
-      toast('تعذر تحديد موقعك بدقة 📡', 'inf');
-      showSelfieModal();
-    },
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-  );
-}
-
-function showAuthError(msg) { var el = document.getElementById('authErrorMsg'); if (el) { el.style.display = 'block'; el.textContent = msg; } }
-function clearAuthError() { var el = document.getElementById('authErrorMsg'); if (el) { el.style.display = 'none'; } }
-
-// مودال الصورة الشخصية (Selfie)
-var capturedSelfieData = '';
-function showSelfieModal() {
-  var html = '<div id="selfieModal" class="sf-overlay"><div class="sf-box" style="text-align:center;"><div style="font-size:48px; margin-bottom:12px;">📸</div><h3 style="font-size:16px; font-weight:900; margin-bottom:8px;">إثبات الحضور بالصورة</h3><p style="font-size:12px; color:var(--text-2); margin-bottom:20px;">مرحباً <strong>' + esc(S.user) + '</strong>، التقط صورة سيلفي سريعة لبدء العمل.</p><input type="file" accept="image/*" capture="user" id="selfieInput" style="margin-bottom:16px; font-size:12px;" onchange="handleSelfieSelect(this)"><div id="selfiePreview" style="margin-bottom:16px; display:flex; justify-content:center;"></div><button id="btnConfirmLogin" onclick="confirmLoginWithPhoto()" disabled style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:var(--r-sm); font-family:\'Cairo\'; font-weight:900; font-size:14px; cursor:pointer; opacity:0.5;">تأكيد الحضور وبدء العمل ←</button></div></div>';
-  document.body.insertAdjacentHTML('beforeend', html);
-}
-
-// معالجة وضغط الصورة المختارة
-function handleSelfieSelect(input) {
-  var file = input.files[0]; if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var img = new Image();
-    img.onload = function() {
-      // ضغط الصورة لسرعة الرفع (Max 400px width)
-      var MAX_WIDTH = 400; var ratio = 1;
-      if (img.width > MAX_WIDTH) ratio = MAX_WIDTH / img.width;
-      var canvas = document.createElement('canvas'); canvas.width = img.width * ratio; canvas.height = img.height * ratio;
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      capturedSelfieData = canvas.toDataURL('image/jpeg', 0.7); // Base64
-      
-      var preview = document.getElementById('selfiePreview');
-      if (preview) preview.innerHTML = '<img src="' + capturedSelfieData + '" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--primary); box-shadow:var(--shadow);">';
-      var btn = document.getElementById('btnConfirmLogin');
-      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-// إرسال بيانات الدخول المكتملة (POST)
-function confirmLoginWithPhoto() {
-  var btn = document.getElementById('btnConfirmLogin');
-  if (btn) { if (btn._submitting) return; btn._submitting = true; btn.disabled = true; }
-  
-  showLoader(); setLoaderText('جاري تسجيل الحضور وبدء الجلسة...');
-  var loc = S.location || {};
-  
-  callAPI('recordUserLogin', {
-    name: S.user, email: S.userEmail, loginTime: new Date().toISOString(),
-    lat: loc.lat || '', lng: loc.lng || '', accuracy: loc.accuracy || '',
-    mapsUrl: loc.mapsUrl || '', photo: capturedSelfieData
-  }, function(err, res) {
-    capturedSelfieData = ''; // تفريغ الذاكرة
-    var modal = document.getElementById('selfieModal'); if (modal) modal.remove();
-    
-    if (!err && res && res.status === 'success') { toast('تم تسجيل الحضور بنجاح ✅', 'ok'); }
-    else { toast('تم الدخول، ولكن فشل رفع الصورة ⚠️', 'inf'); }
-    loadData(); // تحميل بيانات العمل
-  });
-}
-
-// ==============================================================================
-// 📊 تحميل البيانات وإدارة الفلاتر (Cascading Filters)
-// ==============================================================================
-function loadData() {
-  showLoader(); setLoaderText('جاري تحميل بيانات النواقص...');
-  var action = S.isOwner ? 'getOwnerData' : 'getUserData';
-  
-  callAPI(action, { user: S.user }, function(err, res) {
-    hideLoader();
-    if (err || !res) { 
-      document.getElementById('itemsList').innerHTML = '<div style="text-align:center; padding:40px; color:var(--error);">فشل تحميل البيانات. تأكد من جودة الإنترنت وحاول مرة أخرى.</div>';
-      return; 
-    }
-    
-    S.all = res.issues || [];
-    var fData = res.filters || { chainNames: [], chainMap: {}, allVendors: [], allBranchIds: [] };
-    _chainMap = fData.chainMap || {}; // تخزين خريطة الـ Chain
-
-    // 1. ملء فلتر الـ Chains أولاً
-    rebuildSelect('fChain', 'كل الـ Chains', fData.chainNames);
-    
-    // 2. ملء الفلاتر الفرعية بكل البيانات في البداية
-    rebuildSelect('fVendor', 'كل الفروع', fData.allVendors);
-    rebuildSelect('fBranch', 'كل IDs', fData.allBranchIds);
-
-    S.batchSelections = {};
-    applyFilters(); // تطبيق الفلترة الأولية وعرض الكروت
-    
-    hide('loginScreen'); show('appScreen');
-    document.getElementById('headerName').textContent = S.user;
-    if (S.isOwner) { document.getElementById('btnDashTrigger').style.display = 'inline-block'; }
-    toast(S.all.length ? 'تم تحميل ' + S.all.length + ' نواقص معلقة 📋' : 'لا توجد نواقص معلقة 🎉', 'inf');
-  });
-}
-
-// بناء محتوى قائمة اختيار (Select)
-function rebuildSelect(id, placeholder, opts) {
-  var sel = document.getElementById(id); if(!sel) return;
-  sel.innerHTML = '<option value="">' + placeholder + '</option>';
-  opts.forEach(function(v) { sel.insertAdjacentHTML('beforeend', '<option value="' + esc(v) + '">' + esc(v) + '</option>'); });
-}
-
-// ─── منطق الفلترة المترابطة (Cascading) ───
-function onChainFilterChange() {
-  var chainName = document.getElementById('fChain').value;
-  var vendorSel = document.getElementById('fVendor');
-  var branchSel = document.getElementById('fBranch');
-
-  // مسح الخيارات الحالية في الفلاتر الفرعية
-  vendorSel.innerHTML = '<option value="">كل الفروع</option>';
-  branchSel.innerHTML = '<option value="">كل IDs</option>';
-
-  if (chainName && _chainMap[chainName]) {
-    // إذا تم اختيار Chain، أظهر الفروع والـ IDs التابعة لها فقط
-    var vendorsOfChain = _chainMap[chainName].vendors; // {vendor: branchId, ...}
-    var sortedVendors = Object.keys(vendorsOfChain).sort();
-    
-    sortedVendors.forEach(function(vName) {
-      vendorSel.insertAdjacentHTML('beforeend', '<option value="' + esc(vName) + '">' + esc(vName) + '</option>');
-      var bId = vendorsOfChain[vName];
-      // تجنب تكرار الـ IDs لو فرع له نفس الـ ID (نظرياً لا يجب)
-      if (!Array.from(branchSel.options).some(opt => opt.value === String(bId))) {
-         branchSel.insertAdjacentHTML('beforeend', '<option value="' + esc(bId) + '">' + esc(bId) + '</option>');
-      }
-    });
-  } else {
-    // إذا تم مسح اختيار الـ Chain، أعد إظهار كل الفروع والـ IDs المتاحة في البيانات
-    var vendors = {}, ids = {};
-    S.all.forEach(function(i) { vendors[i.vendorName] = true; ids[i.branchId] = true; });
-    rebuildSelect('fVendor', 'كل الفروع', Object.keys(vendors).sort());
-    rebuildSelect('fBranch', 'كل IDs', Object.keys(ids).sort());
-  }
-
-  // تطبيق الفلترة النهائية على الكروت
-  applyFilters();
-}
-
-// تطبيق الفلترة بناءً على الاختيارات الحالية
-function applyFilters() {
-  var chain  = document.getElementById('fChain').value;
-  var vendor = document.getElementById('fVendor').value;
-  var branch = document.getElementById('fBranch').value;
-  
-  S.filtered = S.all.filter(function(i) {
-    if (chain && i.chainName !== chain) return false;
-    if (vendor && i.vendorName !== vendor) return false;
-    if (branch && String(i.branchId) !== String(branch)) return false;
-    return true;
-  });
-  renderItems(); // إعادة رسم الكروت
-}
-
-function clearFilters() {
-  document.getElementById('fChain').value = '';
-  // تشغيل منطق التغيير لمسح وإعادة بناء القوائم الفرعية
-  onChainFilterChange(); 
-}
-
-// ==============================================================================
-// 🃏 رسم وإدارة كروت النواقص (UI)
-// ==============================================================================
-function renderItems() {
-  var list = document.getElementById('itemsList');
-  var empty = document.getElementById('emptyState');
-  list.innerHTML = '';
-  if (!S.filtered.length) { empty.style.display = 'block'; }
-  else { empty.style.display = 'none'; S.filtered.forEach(function(iss) { list.appendChild(buildCard(iss)); }); }
-  updateBatchBarState(); // تحديث بار الإرسال السفلي
-}
-
-// بناء كرت واحد
-function buildCard(iss) {
-  var k = cKey(iss); var sel = S.batchSelections[k];
-  var div = document.createElement('div'); div.className = 'icard'; div.id = 'icard_' + k;
-  
-  // Pelican Status badge color
-  var statusCls = (iss.pelicanStatus && iss.pelicanStatus.toLowerCase() === 'not found') ? 'p-not-found' : 'p-active';
-  
-  div.innerHTML = '<div class="ch"><span class="ch-date">📅 ' + iss.orderDate + '</span><span class="ch-badge ' + statusCls + '">' + esc(iss.pelicanStatus) + '</span></div>' +
-  '<div class="cb">' +
-    '<div class="cb-info">' +
-      // --- الـ Chain Info المضافة ---
-      '<div class="cb-chain-info">🔗 ' + esc(iss.chainName) + ' (' + esc(iss.chainId) + ')</div>' +
-      '<div class="cb-item-name">' + esc(iss.itemName) + '</div>' +
-      '<div class="cb-sku">SKU: ' + iss.itemSku + '</div>' +
-      '<div style="font-size:11px; font-weight:700; margin-bottom:2px;">🏪 ' + esc(iss.vendorName) + ' (ID: ' + esc(iss.branchId) + ')// ==============================================================================
-// Talabat OOS - Dynamic Mapping Auth & POST Request Engine (Final Solution)
-// ==============================================================================
-
-var DAILY_SHEET_NAME          = "oos";
-var MASTER_FEEDBACK_SHEET     = "Master_Database";
-var MASTER_NO_FEEDBACK_SHEET  = "Master_Database NO FEEDBACK";
-var RECURRENCE_SHEET_NAME     = "Products_Recurrence";
-var LOGIN_TRACKER_SHEET       = "Login_Tracker";
-var MAPPING_SHEET_NAME        = "maping";
-
-// ─── POST GATEWAY (الماسورة الكبيرة - السر في الحل) ───────────────────────────
-function doPost(e) {
-  var data    = JSON.parse(e.postData.contents);
-  var action  = data.action;
-  var payload = data.payload || {};
-  var result  = {};
-
-  if      (action === "recordUserLogin")    result = recordUserLogin(payload);
-  else if (action === "submitBatchFeedback") result = submitBatchFeedback(payload.items || []);
-  else if (action === "submitBranchSummary")  result = submitBranchSummary(payload);
-  else result = { status: "online" };
-
-  return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-// ─── GET GATEWAY (لعمليات التحقق والقراءة السريعة) ───────────────────────────
-function doGet(e) {
-  var callback = e.parameter.callback;
-  var action   = e.parameter.action;
-  var payload  = {};
-
-  try {
-    if (e.parameter.payload) payload = JSON.parse(e.parameter.payload);
-  } catch(err) {}
-
-  var result = {};
-
-  if      (action === "verifyUserAuth")     result = verifyUserAuth(payload.email || "");
-  else if (action === "getUserData")        result = getUserDataAndFilters(payload.user || "");
-  else if (action === "getOwnerData")       result = getOwnerData(payload.filterName || null);
-  else if (action === "getAdminAnalytics")  result = getAdminAnalytics(payload.email || "");
-  else result = { status: "online" };
-
-  var responseText = callback
-    ? callback + "(" + JSON.stringify(result) + ")"
-    : JSON.stringify(result);
-
-  return ContentService.createTextOutput(responseText)
-    .setMimeType(ContentService.MimeType.JAVASCRIPT);
-}
-
-// ─── MAPPING READER ─────────────────────────────────────────────────────────────
-function getMappingData() {
-  var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(MAPPING_SHEET_NAME);
-
-  var employeeMap   = {};
-  var managerEmails = {};
-  var names         = {};
-
-  if (!sheet) return { employeeMap: employeeMap, managerEmails: managerEmails, names: [] };
-
-  var data = sheet.getDataRange().getValues();
-  if (data.length === 0) return { employeeMap: employeeMap, managerEmails: managerEmails, names: [] };
-
-  var headerRow    = data[0];
-  var empNameCol   = -1;
-  var empEmailCol  = -1;
-  var mgrEmailCol  = -1;
-
-  for (var h = 0; h < headerRow.length; h++) {
-    var hdr = headerRow[h] ? headerRow[h].toString().trim() : "";
-    if (hdr === "T-champ" || hdr === "t_champ")   empNameCol   = h;
-    if (hdr === "Email")                           empEmailCol = h;
-    if (hdr === "EMAIL")                           mgrEmailCol = h;
-  }
-
-  if (empNameCol   === -1) empNameCol   = 1;
-  if (empEmailCol === -1) empEmailCol = 3;
-
-  for (var i = 1; i < data.length; i++) {
-    var champName = data[i][empNameCol]  ? data[i][empNameCol].toString().trim()  : "";
-    var empEmail  = data[i][empEmailCol] ? data[i][empEmailCol].toString().trim() : "";
-    if (champName && empEmail && empEmail.indexOf("@") > -1) {
-      employeeMap[empEmail.toLowerCase()] = champName;
-      names[champName] = true;
-    }
-
-    if (mgrEmailCol > -1) {
-      var mgrEmail = data[i][mgrEmailCol] ? data[i][mgrEmailCol].toString().trim() : "";
-      if (mgrEmail && mgrEmail.indexOf("@") > -1) {
-        managerEmails[mgrEmail.toLowerCase()] = true;
-      }
-    }
-  }
-
-  return {
-    employeeMap:   employeeMap,
-    managerEmails: managerEmails,
-    names:         Object.keys(names).sort()
-  };
-}
-
-// ─── AUTH ────────────────────────────────تمام، إليك التعديلات والشرح الكامل بناءً على ما قدمته لي من كود ولقطات شاشة. المشكلة كانت في عدم ربط كود الـ Backend (الذي يقرأ بيانات الـ Mapping) بكود الـ Frontend (الذي يبني الفلاتر والكروت)، مما تسبب في اختفاء بيانات الـ Chain ومشاكل الفلترة.
-
-إليك الأكواد كاملة ومعدلة لتصحيح هذه الأخطاء، مع التركيز على ماسورة الـ POST كما هو مطلوب.
-
----
-
-### القسم الأول: كود Google Apps Script (`Code.gs`) - "السيرفر"
-
-هناك تعديل هام جداً في دالة **`getMappingData`** لتقوم بقراءة جميع الأعمدة الجديدة التي أضفتها في شيت "maping" (مثل Chain ID و Chain Name)، وتعديل دالة **`getUserDataAndFilters`** لتقوم بربط كل نواقص ببيانات الـ Chain الخاصة بها بناءً على الـ Branch ID، وإرسال هذه البيانات للـ Frontend لبناء الفلاتر المترابطة.
-
-انسخ هذا الكود بالكامل واستبدله في مشروع الـ Script الخاص بك:
-
-```javascript
-// ==============================================================================
-// Talabat OOS - Dynamic Mapping Auth & Post (JSONP) Gateway - (FINAL RESOLUTION V2)
-// ==============================================================================
-
-var DAILY_SHEET_NAME          = "oos";
-var MASTER_FEEDBACK_SHEET     = "Master_Database";
-var MASTER_NO_FEEDBACK_SHEET  = "Master_Database NO FEEDBACK";
-var RECURRENCE_SHEET_NAME     = "Products_Recurrence";
-var LOGIN_TRACKER_SHEET       = "Login_Tracker";
-var MAPPING_SHEET_NAME        = "maping";
-var BRANCH_SUMMARY_SHEET      = "Branch_Summary";
-
-// ─── POST GATEWAY (الماسورة الكبيرة - الحل الجذري لإرسال الصور الكبيرة) ─────────────
-// تم إضافة جزء للتعامل مع الـ CORS الأولي بشكل آمن
-function doPost(e) {
-  // للتعامل مع Pre-flight requests
-  if (e.postData.type === 'application/json' && e.postData.contents === '{"type":"ping"}') {
-     return ContentService.createTextOutput(JSON.stringify({ status: "online" }))
-    .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  var data    = JSON.parse(e.postData.contents);
-  var action  = data.action;
-  var payload = data.payload || {};
-  var result  = {};
-
-  if      (action === "recordUserLogin")    result = recordUserLogin(payload);
-  else if (action === "submitBatchFeedback") result = submitBatchFeedback(payload.items || []);
-  else if (action === "submitBranchSummary")  result = submitBranchSummary(payload);
-  else result = { status: "online" };
-
-  return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-// ─── GET GATEWAY (لعمليات التحقق والقراءة السريعة - JSONP) ───────────────────────────
-function doGet(e) {
-  var callback = e.parameter.callback;
-  var action   = e.parameter.action;
-  var payload  = {};
-
-  try {
-    if (e.parameter.payload) payload = JSON.parse(e.parameter.payload);
-  } catch(err) {}
-
-  var result = {};
-
-  if      (action === "verifyUserAuth")     result = verifyUserAuth(payload.email || "");
-  else if (action === "getUserData")        result = getUserDataAndFilters(payload.user || "");
-  else if (action === "getOwnerData")       result = getOwnerData(payload.filterName || null);
-  else if (action === "getAdminAnalytics")  result = getAdminAnalytics(payload.email || "");
-  else result = { status: "online" };
-
-  var responseText = callback
-    ? callback + "(" + JSON.stringify(result) + ")"
-    : JSON.stringify(result);
-
-  return ContentService.createTextOutput(responseText)
-    .setMimeType(ContentService.MimeType.JAVASCRIPT);
-}
-
-// ─── MAPPING READER (Modified to read Chain Info) ───────────────────────────────
-// **تعديل هام هنا:** قراءة جميع الأعمدة الجديدة من شيت maping وبناء خريطة للـ chains
-function getMappingData() {
-  var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(MAPPING_SHEET_NAME);
-
-  var employeeMap   = {};
-  var managerEmails = {};
-  var names         = {};
-  var branchDetails = {}; // جديدة: لتخزين بيانات الفرع والـ Chain
-
-  if (!sheet) return { employeeMap: employeeMap, managerEmails: managerEmails, names: [], branchDetails: {} };
-
-  var data = sheet.getDataRange().getValues();
-  if (data.length === 0) return { employeeMap: employeeMap, managerEmails: managerEmails, names: [], branchDetails: {} };
-
-  var headerRow    = data[0];
-  var empNameCol   = -1;
-  var empEmailCol  = -1;
-  var mgrEmailCol  = -1;
-  
-  // جديدة: تحديد أعمدة بيانات الـ Chain
-  var branchIdCol = headerRow.indexOf("Branch Id"); // أو الاسم الصحيح في الشيت
-  var chainNameCol = headerRow.indexOf("Chain Name");
-  var chainIdCol = headerRow.indexOf("Chain ID");
-
-  for (var h = 0; h < headerRow.length; h++) {
-    var hdr = headerRow[h] ? headerRow[h].toString().trim() : "";
-    if (hdr === "T-champ" || hdr === "t_champ")   empNameCol   = h;
-    if (hdr === "Email")                           empEmailCol = h;
-    if (hdr === "EMAIL")                           mgrEmailCol = h;
-  }
-
-  if (empNameCol   === -1) empNameCol   = 1;
-  if (empEmailCol === -1) empEmailCol = 3;
-
-  for (var i = 1; i < data.length; i++) {
-    var champName = data[i][empNameCol]  ? data[i][empNameCol].toString().trim()  : "";
-    var empEmail  = data[i][empEmailCol] ? data[i][empEmailCol].toString().trim() : "";
-    if (champName && empEmail && empEmail.indexOf("@") > -1) {
-      employeeMap[empEmail.toLowerCase()] = champName;
-      names[champName] = true;
-    }
-
-    if (mgrEmailCol > -1) {
-      var mgrEmail = data[i][mgrEmailCol] ? data[i][mgrEmailCol].toString().trim() : "";
-      if (mgrEmail && mgrEmail.indexOf("@") > -1) {
-        managerEmails[mgrEmail.toLowerCase()] = true;
-      }
-    }
-    
-    // جديدة: بناء خريطة بيانات الفرع (بناءً على Branch ID)
-    if (branchIdCol > -1 && chainNameCol > -1 && chainIdCol > -1) {
-        var bId = data[i][branchIdCol] ? data[i][branchIdCol].toString().trim() : "";
-        if (bId) {
-            branchDetails[bId] = {
-                chainName: data[i][chainNameCol] || "—",
-                chainId: data[i][chainIdCol] || "—"
-            };
-        }
-    }
-  }
-
-  return {
-    employeeMap:   employeeMap,
-    managerEmails: managerEmails,
-    names:         Object.keys(names).sort(),
-    branchDetails: branchDetails // تم إضافة بيانات الـ chains
-  };
-}
-
-// ─── AUTH ───────────────────────────────────────────────────────────────────────
-function verifyUserAuth(emailInput) {
-  if (!emailInput || emailInput.trim() === "") {
-    return { isAuthorized: false, message: "لم يُرسَل بريد إلكتروني للتحقق" };
-  }
-
-  var lowerEmail = emailInput.trim().toLowerCase();
-  var mapObj     = getMappingData();
-
-  if (mapObj.managerEmails[lowerEmail]) {
-    var mgrName = mapObj.employeeMap[lowerEmail] || lowerEmail.split('@')[0];
-    return {
-      isAuthorized: true,
-      name:         mgrName,
-      email:        lowerEmail,
-      isOwner:      true,
-      allNames:     mapObj.names
-    };
-  }
-
-  var matchedName = mapObj.employeeMap[lowerEmail];
-  if (matchedName) {
-    return {
-      isAuthorized: true,
-      name:         matchedName,
-      email:        lowerEmail,
-      isOwner:      false,
-      allNames:     mapObj.names
-    };
-  }
-
-  return {
-    isAuthorized: false,
-    email:        lowerEmail,
-    message:      "البريد الإلكتروني (" + emailInput.trim() + ") غير مسجل في شيت maping وغير مصرح له بالدخول."
-  };
-}
-
-// ─── SHEETS SETUP ───────────────────────────────────────────────────────────────
-function ensureAllSheetsExist() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheets = {};
-
-  //Master_Feedback
-  var masterFb = ss.getSheetByName(MASTER_FEEDBACK_SHEET);
-  if (!masterFb) {
-    masterFb = ss.insertSheet(MASTER_FEEDBACK_SHEET);
-    masterFb.appendRow([
-      "Local Order Date", "Vendor Name", "Branch Id", "Order ID", "Item SKU", "Item Name",
-      "Talabat Reason", "Chain ID", "Chain Name", "Items Ordered", "OOS Qty",
-      "Pelican Status", "t_champ", "Item Image Path", "Action Type", "Action Value / Image", "Feedback Date"
-    ]);
-  }
-  sheets[MASTER_FEEDBACK_SHEET] = masterFb;
-
-  //Master_No_Feedback
-  var masterNoFb = ss.getSheetByName(MASTER_NO_FEEDBACK_SHEET);
-  if (!masterNoFb) {
-    masterNoFb = ss.insertSheet(MASTER_NO_FEEDBACK_SHEET);
-    masterNoFb.appendRow([
-      "Local Order Date", "Vendor Name", "Branch Id", "Order ID", "Item SKU", "Item Name",
-      "Talabat Reason", "Chain ID", "Chain Name", "Items Ordered", "OOS Qty",
-      "Pelican Status", "t_champ", "Item Image Path", "Action Type", "Action Value / Image", "Feedback Date"
-    ]);
-  }
-  sheets[MASTER_NO_FEEDBACK_SHEET] = masterNoFb;
-
-  //Recurrence
-  var recSheet = ss.getSheetByName(RECURRENCE_SHEET_NAME);
-  if (!recSheet) {
-    recSheet = ss.insertSheet(RECURRENCE_SHEET_NAME);
-    recSheet.appendRow([
-      "Item SKU", "Item Name", "Branch ID", "Vendor Name",
-      "إجمالي التكرار", "التواريخ التي تكرر فيها", "الأوردرات التي تكرر فيها", "حالة التكرار"
-    ]);
-  }
-  sheets[RECURRENCE_SHEET_NAME] = recSheet;
-
-  //Login_Tracker
-  var trackerSheet = ss.getSheetByName(LOGIN_TRACKER_SHEET);
-  if (!trackerSheet) {
-    trackerSheet = ss.insertSheet(LOGIN_TRACKER_SHEET);
-    trackerSheet.appendRow([
-      "Login Time", "Selfie Time", "Employee Name", "Email",
-      "Latitude", "Longitude", "GPS Accuracy (m)", "Google Maps URL", "Selfie Image", "Area Name"
-    ]);
-  }
-  sheets[LOGIN_TRACKER_SHEET] = trackerSheet;
-
-  //Branch_Summary
-  var summarySheet = ss.getSheetByName("Branch_Summary");
-  if (!summarySheet) {
-    summarySheet = ss.insertSheet("Branch_Summary");
-    summarySheet.appendRow([
-      "Timestamp", "Employee Name", "Email",
-      "Menu Management", "Visit Objective",
-      "Employees Per Shift", "Riders Per Shift",
-      "Actions Plan", "Order ID", "Vendor Issue"
-    ]);
-  }
-  sheets["Branch_Summary"] = summarySheet;
-
-  return sheets;
-}
-
-// ─── LOGIN TRACKER (POST) ─────────────────────────────────────────────────────────────
-// معدلة لضمان استقبال الـ Base64 الكامل للصور الكبيرة عبر POST
-function recordUserLogin(data) {
-  var sheets     = ensureAllSheetsExist();
-  var selfieTime = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
-
-  var photoVal = "بدون صورة";
-  // التأكد من وجود بيانات للصورة وأنها نصية
-  var rawPhoto = (data.photo && typeof data.photo === 'string') ? data.photo : "";
-
-  // إذا كانت الصورة موجودة وبصيغة Base64 (تبدأ بـ data:image)
-  if (rawPhoto.indexOf("data:image") === 0) {
-    // تخزين الـ Base64 الكامل في الخلية. الـ POST Engine سيتعامل مع الحجم الكبير.
-    photoVal = rawPhoto; 
-  }
-
-  // إضافة الصف للشيت، بما في ذلك بيانات الموقع التي تم جلبها من الـ Frontend
-  sheets[LOGIN_TRACKER_SHEET].appendRow([
-    data.loginTime || selfieTime, // وقت محاولة الدخول من المتصفح
-    selfieTime,                   // وقت التسجيل الفعلي في السيرفر
-    data.name      || "غير محدد",
-    data.email     || "غير محدد",
-    data.lat       || "",         // خط العرض
-    data.lng       || "",         // خط الطول
-    data.accuracy  || "",         // دقة الموقع
-    data.mapsUrl   || "",         // رابط الخريطة جاهز
-    photoVal,                     // صورة السيلفي (Base64)
-    data.areaName  || ""          // اسم المنطقة
-  ]);
-
-  return { status: "success", rowNum: sheets[LOGIN_TRACKER_SHEET].getLastRow() };
-}
-
-// ─── BRANCH SUMMARY (POST) ─────────────────────────────────────────────────────────────
-function submitBranchSummary(data) {
-  var sheets = ensureAllSheetsExist();
-  var now    = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
-
-  sheets["Branch_Summary"].appendRow([
-    now,
-    data.name            || "",
-    data.email          || "",
-    data.menuManagement || "",
-    data.visitObjective || "",
-    data.empPerShift    || "",
-    data.riderPerShift  || "",
-    data.actionsplan    || "",
-    data.orderId        || "",
-    data.vendorIssue    || ""
-  ]);
-
-  return { status: "success" };
-}
-
-// ─── USER DATA & FILTERS (Modified for Chain Info & Cascading) ──────────────────────
-// **تعديل هام هنا:** ربط كل ناقص ببيانات الـ Chain وإرسال خريطة الـ chains للـ Frontend لبناء الفلاتر المترابطة
-function getUserDataAndFilters(employeeName) {
-  var sheets = ensureAllSheetsExist();
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  // جلب بيانات الـ Mapping المحدثة
-  var mappingObj = getMappingData();
-  var branchMap = mappingObj.branchDetails; // خريطة {branchId: {chainName, chainId}}
-
-  var dailySheet = ss.getSheetByName(DAILY_SHEET_NAME) || ss.getSheets()[0];
-  var noFbSheet  = sheets[MASTER_NO_FEEDBACK_SHEET];
-  var fbSheet    = sheets[MASTER_FEEDBACK_SHEET];
-
-  // 1. جمع المفاتيح المكتملة
-  var completedKeys = {};
-  var fbData = fbSheet.getDataRange().getValues();
-  for (var k = 1; k < fbData.length; k++) {
-    completedKeys[fbData[k][3] + "_" + fbData[k][4]] = true; // OrderId + SKU
-  }
-
-  var issuesMap = {};
-  var lowerName = employeeName.trim().toLowerCase();
-  
-  // كائنات لجمع بيانات الفلاتر (Cascading Structure)
-  // الشكل: { chainName: { id: chainId, branches: { branchId: vendorName, ... } } }
-  var filterData = { chains: {} }; 
-  
-  // فلاتر احتياطية (لو لم يتم ربط الفرع بـ chain)
-  var allVendors = {}; var allBranchIds = {};
-
-  var noFbData  = noFbSheet.getDataRange().getValues();
-
-  // 2. معالجة Master NO FEEDBACK
-  for (var i = 1; i < noFbData.length; i++) {
-    var row   = noFbData[i];
-    var champ = row[12] ? row[12].toString().trim().toLowerCase() : "";
-    if (champ !== lowerName) continue;
-
-    var orderId = row[3] ? row[3].toString().trim() : "";
-    var sku     = row[4] ? row[4].toString().trim() : "";
-    var uniqueKey = orderId + "_" + sku;
-
-    if (!completedKeys[uniqueKey] && orderId && sku) {
-      var bId = row[2] ? row[2].toString().trim() : "—";
-      var vName = row[1] || "—";
-      
-      // ربط ببيانات الـ Chain من الـ Mapping
-      var cInfo = branchMap[bId] || { chainName: "—", chainId: "—" };
-
-      issuesMap[uniqueKey] = {
-        orderDate: row[0] ? Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), "yyyy-MM-dd") : "",
-        vendorName: vName,
-        branchId: bId,
-        orderId: orderId,
-        itemSku: sku,
-        itemName: row[5] || row[6] || "—",
-        talabatReason: row[6] || "—",
-        itemsOrdered: row[9] || 1,
-        oosQty: row[10] || 1,
-        pelicanStatus: row[11] || "N/A",
-        t_champ: row[12],
-        imageUrl: row[13] || "",
-        // بيانات الـ Chain المضافة
-        chainId: cInfo.chainId,
-        chainName: cInfo.chainName
-      };
-
-      // جمع بيانات الفلاتر
-      if (cInfo.chainName !== "—") {
-          if (!filterData.chains[cInfo.chainName]) {
-              filterData.chains[cInfo.chainName] = { id: cInfo.chainId, branches: {} };
-          }
-          // ربط الـ branch بداخل الـ chain
-          filterData.chains[cInfo.chainName].branches[bId] = vName;
-      }
-      // إضافة للفلاتر العامة
-      allVendors[vName] = bId;
-      allBranchIds[bId] = vName;
-    }
-  }
-
-  // 3. معالجة Daily Sheet
-  if (dailySheet) {
-    var dailyData = dailySheet.getDataRange().getValues();
-    for (var d = 1; d < dailyData.length; d++) {
-      var dRow    = dailyData[d];
-      var dChamp  = dRow[15] ? dRow[15].toString().trim().toLowerCase() : "";
-      if (dChamp !== lowerName) continue;
-
-      var dOrderId = dRow[4] ? dRow[4].toString().trim() : "";
-      var dSku     = dRow[5] ? dRow[5].toString().trim() : "";
-      var dUniqueKey = dOrderId + "_" + dSku;
-
-      if (!completedKeys[dUniqueKey] && dOrderId && dSku) {
-        var dId = dRow[3] ? dRow[3].toString().trim() : "—";
-        var dVName = dRow[2] || "—";
-        
-        // ربط ببيانات الـ Chain من الـ Mapping
-        var dcInfo = branchMap[dId] || { chainName: "—", chainId: "—" };
-
-        issuesMap[dUniqueKey] = {
-          orderDate: dRow[1] ? Utilities.formatDate(new Date(dRow[1]), Session.getScriptTimeZone(), "yyyy-MM-dd") : "",
-          vendorName: dVName,
-          branchId: dId,
-          orderId: dOrderId,
-          itemSku: dSku,
-          itemName: dRow[7] || dRow[6] || "—",
-          talabatReason: dRow[8] || "—",
-          itemsOrdered: dRow[11] || 1,
-          oosQty: dRow[12] || 1,
-          pelicanStatus: dRow[13] || "N/A",
-          t_champ: dRow[15],
-          imageUrl: dRow[14] || "",
-          // بيانات الـ Chain المضافة
-          chainId: dcInfo.chainId,
-          chainName: dcInfo.chainName
-        };
-
-        // جمع بيانات الفلاتر
-        if (dcInfo.chainName !== "—") {
-          if (!filterData.chains[dcInfo.chainName]) {
-              filterData.chains[dcInfo.chainName] = { id: dcInfo.chainId, branches: {} };
-          }
-          filterData.chains[dcInfo.chainName].branches[dId] = dVName;
-        }
-        allVendors[dVName] = dId;
-        allBranchIds[dId] = dVName;
-      }
-    }
-  }
-
-  // ترتيب بيانات الفلاتر للإرسال
-  var finalizedFilters = {
-    chainNames: Object.keys(filterData.chains).sort(),
-    chainMap: filterData.chains, // الخريطة المترابطة الكاملة
-    allVendors: Object.keys(allVendors).sort(),
-    allBranchIds: Object.keys(allBranchIds).sort()
-  };
-
-  return { 
-    issues: Object.keys(issuesMap).map(function(k) { return issuesMap[k]; }),
-    filters: finalizedFilters // تم إضافة الفلاتر
-  };
-}
-
-// ─── OWNER DATA (Modified to include chain filters) ───────────────────────────────────
-function getOwnerData(filterName) {
-  var sheets = ensureAllSheetsExist();
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  // جلب بيانات الـ Mapping
-  var mappingObj = getMappingData();
-  var branchMap = mappingObj.branchDetails;
-
-  var dailySheet = ss.getSheetByName(DAILY_SHEET_NAME) || ss.getSheets()[0];
-  var noFbSheet  = ss.getSheetByName(MASTER_NO_FEEDBACK_SHEET);
-  var fbSheet    = ss.getSheetByName(MASTER_FEEDBACK_SHEET);
-
-  var completedKeys = {};
-  var fbData = fbSheet.getDataRange().getValues();
-  for (var k = 1; k < fbData.length; k++) {
-    completedKeys[fbData[k][3] + "_" + fbData[k][4]] = true;
-  }
-
-  var issuesMap = {};
-  var lowerFilter = filterName ? filterName.trim().toLowerCase() : null;
-  
-  // لجمع بيانات الفلاتر
-  var filterData = { chains: {} }; 
-  var allVendors = {}; var allBranchIds = {};
-
-  //Master No Feedback
-  var noFbData = noFbSheet.getDataRange().getValues();
-  for (var i = 1; i < noFbData.length; i++) {
-    var row   = noFbData[i];
-    var champ = row[12] ? row[12].toString().trim() : "";
-    if (lowerFilter && champ.toLowerCase() !== lowerFilter) continue;
-
-    var orderId = row[3] ? row[3].toString().trim() : "";
-    var sku     = row[4] ? row[4].toString().trim() : "";
-    var uniqueKey = orderId + "_" + sku;
-
-    if (!completedKeys[uniqueKey] && orderId && sku) {
-      var bId = row[2] ? row[2].toString().trim() : "—";
-      var vName = row[1] || "—";
-      var cInfo = branchMap[bId] || { chainName: "—", chainId: "—" };
-
-      issuesMap[uniqueKey] = {
-        orderDate: row[0] ? Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), "yyyy-MM-dd") : "",
-        vendorName: vName, branchId: bId, orderId: orderId, itemSku: sku,
-        itemName: row[5] || row[6] || "—",
-        talabatReason: row[6] || "—",
-        pelicanStatus: row[11] || "N/A",
-        t_champ: champ, imageUrl: row[13] || "",
-        chainId: cInfo.chainId, chainName: cInfo.chainName
-      };
-
-      if (cInfo.chainName !== "—") {
-        if (!filterData.chains[cInfo.chainName]) filterData.chains[cInfo.chainName] = { id: cInfo.chainId, branches: {} };
-        filterData.chains[cInfo.chainName].branches[bId] = vName;
-      }
-      allVendors[vName] = bId;
-      allBranchIds[bId] = vName;
-    }
-  }
-
-  //Daily Sheet
-  if (dailySheet) {
-    var dailyData = dailySheet.getDataRange().getValues();
-    for (var d = 1; d < dailyData.length; d++) {
-      var dRow    = dailyData[d];
-      var dChamp = dRow[15] ? dRow[15].toString().trim() : "";
-      if (lowerFilter && dChamp.toLowerCase() !== lowerFilter) continue;
-
-      var dOrderId = dRow[4] ? dRow[4].toString().trim() : "";
-      var dSku     = dRow[5] ? dRow[5].toString().trim() : "";
-      var dUniqueKey = dOrderId + "_" + dSku;
-
-      if (!completedKeys[dUniqueKey] && dOrderId && dSku) {
-        var dId = dRow[3] ? dRow[3].toString().trim() : "—";
-        var dVName = dRow[2] || "—";
-        var dcInfo = branchMap[dId] || { chainName: "—", chainId: "—" };
-
-        issuesMap[dUniqueKey] = {
-          orderDate: dRow[1] ? Utilities.formatDate(new Date(dRow[1]), Session.getScriptTimeZone(), "yyyy-MM-dd") : "",
-          vendorName: dVName, branchId: dId, orderId: dOrderId, itemSku: dSku,
-          itemName: dRow[7] || dRow[6] || "—",
-          talabatReason: dRow[8] || "—",
-          pelicanStatus: dRow[13] || "N/A",
-          t_champ: dChamp, imageUrl: dRow[14] || "",
-          chainId: dcInfo.chainId, chainName: dcInfo.chainName
-        };
-
-        if (dcInfo.chainName !== "—") {
-          if (!filterData.chains[dcInfo.chainName]) filterData.chains[dcInfo.chainName] = { id: dcInfo.chainId, branches: {} };
-          filterData.chains[dcInfo.chainName].branches[dId] = dVName;
-        }
-        allVendors[dVName] = dId;
-        allBranchIds[dId] = dVName;
-      }
-    }
-  }
-
-  var finalizedFilters = {
-    chainNames: Object.keys(filterData.chains).sort(),
-    chainMap: filterData.chains,
-    allVendors: Object.keys(allVendors).sort(),
-    allBranchIds: Object.keys(allBranchIds).sort()
-  };
-
-  return { 
-    issues: Object.keys(issuesMap).map(function(k) { return issuesMap[k]; }),
-    filters: finalizedFilters 
-  };
-}
-
-// ─── BATCH FEEDBACK (POST) ─────────────────────────────────────────────────────────────
-function submitBatchFeedback(itemsList) {
-  if (!itemsList || !itemsList.length) return { status: "error", message: "لا توجد عناصر للإرسال" };
-
-  var sheetsObj = ensureAllSheetsExist();
-  var noFbSheet = sheetsObj[MASTER_NO_FEEDBACK_SHEET];
-  var fbSheet   = sheetsObj[MASTER_FEEDBACK_SHEET];
-  var noFbData  = noFbSheet.getDataRange().getValues();
-
-  var rowsToDelete = [];
-  var rowsToAppend = [];
-
-  for (var k = 0; k < itemsList.length; k++) {
-    var item        = itemsList[k];
-    var issueData   = item.issueData;
-    var actionType  = item.actionType;
-    var actionValue = item.actionValue; // Base64 الكامل من POST
-
-    var foundRowIndex = -1;
-    var targetRowData = null;
-
-    // البحث عن الصف لضمان نقله بدقة
-    for (var i = 1; i < noFbData.length; i++) {
-      if (String(noFbData[i][3]) === String(issueData.orderId) &&
-          String(noFbData[i][4]) === String(issueData.itemSku)) {
-        foundRowIndex = i + 1;
-        targetRowData = noFbData[i].slice();
-        break;
-      }
-    }
-
-    if (targetRowData) {
-      // تحديث بيانات الـ chain لو كانت مفقودة (للأمان)
-      targetRowData[7] = issueData.chainId || targetRowData[7] || "—";
-      targetRowData[8] = issueData.chainName || targetRowData[8] || "—";
-      
-      targetRowData[14] = actionType;
-      targetRowData[15] = actionValue; // كتابة Base64 في الخلية مباشرة
-      targetRowData[16] = new Date(); // Feedback Date
-      rowsToAppend.push(targetRowData);
-      rowsToDelete.push(foundRowIndex);
-    } else {
-      // صف جديد كلياً
-      rowsToAppend.push([
-        issueData.orderDate, issueData.vendorName, issueData.branchId, issueData.orderId,
-        issueData.itemSku, issueData.itemName, issueData.talabatReason, 
-        issueData.chainId || "—", issueData.chainName || "—", 
-        issueData.itemsOrdered || 1, issueData.oosQty || 1, issueData.pelicanStatus,
-        issueData.t_champ, issueData.imageUrl || "", actionType, actionValue, new Date()
-      ]);
-    }
-  }
-
-  // 1. إضافة الصفوف لشيت Master_No_Feedback
-  if (rowsToAppend.length > 0) {
-    fbSheet.getRange(fbSheet.getLastRow() + 1, 1, rowsToAppend.length, rowsToAppend[0].length)
-           .setValues(rowsToAppend);
-  }
-
-  // 2. حذف الصفوف المكتملة من Master_Feedback (من الأسفل للأعلى)
-  rowsToDelete.sort(function(a, b) { return b - a; });
-  rowsToDelete.forEach(function(idx) {
-     if (idx > 1) { // عدم حذف الهيدر
-         noFbSheet.deleteRow(idx);
-     }
-  });
-
-  // 3. تحليل التكرار
-  generateRecurrenceAnalysis();
-  
-  return { status: "success" };
-}
-
-// ─── RECURRENCE ANALYSIS ──────────────────────────────────────────────────────────
-function generateRecurrenceAnalysis() {
-  var sheetsObj = ensureAllSheetsExist();
-  var recSheet = sheetsObj[RECURRENCE_SHEET_NAME];
-  var recurrenceMap = {};
-
-  [sheetsObj[MASTER_FEEDBACK_SHEET], sheetsObj[MASTER_NO_FEEDBACK_SHEET]].forEach(function(sheet) {
-    var data = sheet.getDataRange().getValues();
-    for (var i = 1; i < data.length; i++) {
-      var row      = data[i];
-      var sku      = row[4] || "";
-      var branchId = row[2] || "";
-      if (!sku) continue;
-
-      var groupKey = sku + "_" + branchId;
-      if (!recurrenceMap[groupKey]) {
-        recurrenceMap[groupKey] = {
-          sku: sku, itemName: row[5] || "", branchId: branchId,
-          vendorName: row[1] || "", count: 0, dates: {}, orders: {}
-        };
-      }
-      recurrenceMap[groupKey].count++;
-      var dateStr = row[0] ? Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), "yyyy-MM-dd") : "";
-      if (dateStr) recurrenceMap[groupKey].dates[dateStr]  = true;
-      if (row[3])  recurrenceMap[groupKey].orders[row[3]]  = true;
-    }
-  });
-
-  var outputRows = [];
-  for (var k in recurrenceMap) {
-    var item = recurrenceMap[k];
-    if (item.count > 1) {
-      outputRows.push([
-        item.sku, item.itemName, item.branchId, item.vendorName, item.count,
-        Object.keys(item.dates).sort().join(", "),
-        Object.keys(item.orders).join(", "),
-        "⚠️ متكرر (" + item.count + " مرات)"
-      ]);
-    }
-  }
-
-  recSheet.clearContents();
-  recSheet.appendRow(["Item SKU", "Item Name", "Branch ID", "Vendor Name",
-    "إجمالي التكرار", "التواريخ التي تكرر فيها", "الأوردرات التي تكرر فيها", "حالة التكرار"]);
-  if (outputRows.length > 0) {
-    recSheet.getRange(2, 1, outputRows.length, outputRows[0].length).setValues(outputRows);
-  }
-}
+<script src="main.js"></script>
+</body>
+</html>
