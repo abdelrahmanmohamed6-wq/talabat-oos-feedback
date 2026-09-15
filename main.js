@@ -108,11 +108,15 @@ function callAPI(action, payload, callback) {
 // ==============================================================================
 document.addEventListener('DOMContentLoaded', function() {
   var cached = readCache();
-  if (cached) {
+
+  if (cached && cached.isOwner) {
+    // المدير فقط: يدخل تلقائياً لو الكاش صالح (مفيش موقع/صورة مطلوبة منه)
     S.user = cached.name; S.userEmail = cached.email;
-    S.isOwner = cached.isOwner; S.allTeamNames = cached.allNames || [];
+    S.isOwner = true; S.allTeamNames = cached.allNames || [];
     loadData();
   } else {
+    // الموظف: دايماً يمر بـ Google + موقع + صورة في كل فتح
+    clearCache();           // امسح أي بقايا جلسة سابقة
     hideLoader();
     show('loginScreen');
   }
@@ -299,7 +303,7 @@ function confirmLoginWithPhoto() {
   showLoader(); setLoaderText('جاري تسجيل الحضور...');
   var loc = S.location || {};
 
-  callAPI('recordUserLogin', {
+  var _loginPayload = {
     name:       S.user,
     email:      S.userEmail,
     loginTime:  new Date().toISOString(),
@@ -310,16 +314,29 @@ function confirmLoginWithPhoto() {
     areaName:   loc.areaName   || '',
     locationMs: loc.elapsedMs  || '',
     photo:      _selfieData
-  }, function(err, res) {
-    _selfieData = ''; // تفريغ الذاكرة
-    var modal = document.getElementById('selfieModal');
-    if (modal) modal.remove();
+  };
 
-    if (!err && res && res.status === 'success') toast('تم تسجيل الحضور بنجاح ✅', 'ok');
-    else toast('دخلت بنجاح (الصورة قد لا تكون وصلت) ⚠️', 'inf');
-
-    loadData();
-  });
+  function _doLoginRecord(attempt) {
+    callAPI('recordUserLogin', _loginPayload, function(err, res) {
+      if (!err && res && res.status === 'success') {
+        _selfieData = '';
+        var modal = document.getElementById('selfieModal');
+        if (modal) modal.remove();
+        toast('تم تسجيل الحضور بنجاح ✅', 'ok');
+        loadData();
+      } else if (attempt < 3) {
+        // إعادة المحاولة تلقائياً حتى 3 مرات
+        setTimeout(function() { _doLoginRecord(attempt + 1); }, 2000);
+      } else {
+        _selfieData = '';
+        var modal2 = document.getElementById('selfieModal');
+        if (modal2) modal2.remove();
+        toast('دخلت بنجاح — الحضور قد لا يكون سُجِّل ⚠️', 'inf');
+        loadData();
+      }
+    });
+  }
+  _doLoginRecord(1);
 }
 
 // ==============================================================================
@@ -722,6 +739,14 @@ function openAdminDashboardModal() {
   document.getElementById('adminDashboardModal').classList.add('on');
   showLoader(); setLoaderText('جاري تحميل التحليلات...');
 
+  // auto-refresh الحضور كل 30 ثانية طول ما الداشبورد مفتوح
+  if (_dashRefreshTimer) clearInterval(_dashRefreshTimer);
+  _dashRefreshTimer = setInterval(function() {
+    if (document.getElementById('adminDashboardModal').classList.contains('on')) {
+      refreshLoginLogs();
+    }
+  }, 30000);
+
   callAPI('getAdminAnalytics', { email: S.userEmail }, function(err, data) {
     hideLoader();
     if (err || !data || data.status === 'unauthorized') {
@@ -805,8 +830,58 @@ function openAdminDashboardModal() {
   });
 }
 
+var _dashRefreshTimer = null;
+
 function closeAdminDashboardModal() {
   document.getElementById('adminDashboardModal').classList.remove('on');
+  if (_dashRefreshTimer) { clearInterval(_dashRefreshTimer); _dashRefreshTimer = null; }
+}
+
+// تحديث جدول الحضور فقط بدون إغلاق الداشبورد
+function refreshLoginLogs() {
+  var btn = document.getElementById('btnRefreshLogins');
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+
+  callAPI('getAdminAnalytics', { email: S.userEmail }, function(err, data) {
+    if (btn) { btn.textContent = '🔄 تحديث'; btn.disabled = false; }
+    if (err || !data || data.status === 'unauthorized') return;
+
+    var loginBody = document.getElementById('dashLoginBody');
+    if (!loginBody) return;
+    loginBody.innerHTML = '';
+
+    (data.loginLogs || []).forEach(function(l) {
+      var imgHtml = (l.photo && l.photo.indexOf('data:image') === 0)
+        ? '<img src="' + l.photo + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">'
+        : '<span style="font-size:18px;opacity:0.35;">👤</span>';
+
+      var isSuspect = (l.locationMs !== null && l.locationMs !== undefined && l.locationMs < 1500);
+      var suspectBadge = isSuspect
+        ? ' <span style="background:var(--error);color:white;font-size:9px;padding:1px 5px;border-radius:var(--r-full);font-weight:900;">⚠️ فيك؟</span>'
+        : '';
+
+      var locText = '';
+      if (l.mapsUrl && l.mapsUrl.indexOf('http') === 0) {
+        locText = '<a href="' + esc(l.mapsUrl) + '" target="_blank" style="color:var(--info);font-size:11px;font-weight:800;text-decoration:none;">📍 خريطة</a>';
+        if (l.areaName) locText += '<br><span style="font-size:10px;color:var(--text-2);">' + esc(l.areaName) + '</span>';
+      } else { locText = '—'; }
+
+      loginBody.innerHTML +=
+        '<tr style="border-top:1px solid var(--border);">' +
+        '<td style="padding:4px 8px;white-space:nowrap;font-size:10px;">' + esc(l.timestamp || '') + suspectBadge + '</td>' +
+        '<td><strong>' + esc(l.name || '') + '</strong><br><span style="font-size:10px;color:var(--text-2);">دقة: ' + esc(l.accuracy || '—') + 'm</span></td>' +
+        '<td style="text-align:center;">' + imgHtml + '</td>' +
+        '<td>' + locText + '</td></tr>';
+    });
+
+    // تحديث KPIs أيضاً
+    if (data.kpis) {
+      setTxt('dashKpiTotal',     data.kpis.total);
+      setTxt('dashKpiPending',   data.kpis.pending);
+      setTxt('dashKpiCompleted', data.kpis.completed);
+      setTxt('dashKpiRate',      (data.kpis.completionRate || 0) + '%');
+    }
+  });
 }
 
 // ==============================================================================
