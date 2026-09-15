@@ -107,6 +107,12 @@ function callAPI(action, payload, callback) {
 // 🚀 بدء التشغيل
 // ==============================================================================
 document.addEventListener('DOMContentLoaded', function() {
+  // إخفاء كل المودالات عند التحميل (حماية من أي كاش CSS)
+  ['branchSummaryModal', 'adminDashboardModal'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.classList.remove('on'); }
+  });
+
   var cached = readCache();
 
   if (cached && cached.isOwner) {
@@ -914,10 +920,12 @@ function toast(msg, type) {
 // 📋 ملخص الزيارة (Branch Summary)
 // ==============================================================================
 function showBranchSummaryModal() {
-  document.getElementById('branchSummaryModal').classList.add('on');
+  var el = document.getElementById('branchSummaryModal');
+  if (el) el.style.display = 'flex';
 }
 function closeBranchSummaryModal() {
-  document.getElementById('branchSummaryModal').classList.remove('on');
+  var el = document.getElementById('branchSummaryModal');
+  if (el) el.style.display = 'none';
 }
 
 function doSubmitBranchSummary() {
